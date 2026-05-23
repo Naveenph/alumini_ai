@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Events & Webinars - Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Events & Webinars Hub</h1>
+    <p class="page-subtitle">Register for official college conferences and technical workshops hosted by alumni.</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Left Column: Admin Events -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-university"></i> Official Campus Events</h3>
+            <span class="badge badge-primary">{{ events|length }} Upcoming</span>
+        </div>
+
+        {% if events %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for event in events %}
+                    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+                        <h4 style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);">{{ event.title }}</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0.3rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <span><i class="far fa-calendar-alt"></i> {{ event.event_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0.75rem 0;">
+                            {{ event.description }}
+                        </p>
+                        
+                        <div style="display: flex; justify-content: flex-end;">
+                            {% if event.id in my_events %}
+                                <span class="badge badge-success" style="padding: 0.5rem 1rem;"><i class="fas fa-check-circle"></i> Registered</span>
+                            {% else %}
+                                <form action="{{ url_for('student.register_event', event_id=event.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Register for Event</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No official campus events have been scheduled.</p>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Alumni Webinars -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-video"></i> Alumni webinars</h3>
+            <span class="badge badge-primary">{{ webinars|length }} Upcoming</span>
+        </div>
+
+        {% if webinars %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for web in webinars %}
+                    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+                        <h4 style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);">{{ web.title }}</h4>
+                        <h5 style="font-weight: 600; font-size: 0.88rem; color: var(--accent-color); margin-top: 0.15rem;">
+                            Speaker: {{ web.speaker.name }} ({{ web.speaker.company or 'Expert' }})
+                        </h5>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0.4rem 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span><i class="far fa-calendar-alt"></i> {{ web.webinar_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+                            {% if web.id in my_webinars %}
+                                <span><i class="fas fa-link"></i> Join Link: <a href="{{ web.link }}" target="_blank" style="color: var(--accent-color); text-decoration: underline; font-weight: 600;">Click to Join meeting</a></span>
+                            {% endif %}
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0.75rem 0;">
+                            {{ web.description }}
+                        </p>
+                        
+                        <div style="display: flex; justify-content: flex-end;">
+                            {% if web.id in my_webinars %}
+                                <span class="badge badge-success" style="padding: 0.5rem 1rem;"><i class="fas fa-check-circle"></i> Registered</span>
+                            {% else %}
+                                <form action="{{ url_for('student.register_webinar', webinar_id=web.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Register for Webinar</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No alumni webinars have been scheduled.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Alumni Network System{% endblock %}</title>
+    
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Chart.js CDN (Loaded conditionally for reports and dashboards) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Flash Messages Container -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'danger' %}fa-times-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="app-container">
+        <!-- 1. Sidebar - Displayed only for logged in dashboards -->
+        {% if session.get('user_id') %}
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>AlumniNet</span>
+            </div>
+            <ul class="sidebar-menu">
+                {% if session.get('role') == 'admin' %}
+                    <li>
+                        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                            <i class="fas fa-chart-pie"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_users' %}active{% endif %}">
+                            <i class="fas fa-users-cog"></i> Manage Users
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.manage_events') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_events' %}active{% endif %}">
+                            <i class="fas fa-calendar-alt"></i> Manage Events
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.manage_webinars') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_webinars' %}active{% endif %}">
+                            <i class="fas fa-video"></i> Manage Webinars
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_jobs' %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i> Manage Jobs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.reports') }}" class="sidebar-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
+                            <i class="fas fa-file-chart-column"></i> Reports
+                        </a>
+                    </li>
+                {% elif session.get('role') == 'alumni' %}
+                    <li>
+                        <a href="{{ url_for('alumni.dashboard') }}" class="sidebar-link {% if request.endpoint == 'alumni.dashboard' %}active{% endif %}">
+                            <i class="fas fa-columns"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('alumni.profile') }}" class="sidebar-link {% if request.endpoint == 'alumni.profile' %}active{% endif %}">
+                            <i class="fas fa-id-card"></i> My Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('alumni.jobs') }}" class="sidebar-link {% if request.endpoint == 'alumni.jobs' %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i> Post Jobs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('alumni.webinars') }}" class="sidebar-link {% if request.endpoint == 'alumni.webinars' %}active{% endif %}">
+                            <i class="fas fa-video"></i> Host Webinars
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('alumni.messages') }}" class="sidebar-link {% if request.endpoint == 'alumni.messages' %}active{% endif %}">
+                            <i class="fas fa-comments"></i> Messages
+                        </a>
+                    </li>
+                {% elif session.get('role') == 'student' %}
+                    <li>
+                        <a href="{{ url_for('student.dashboard') }}" class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                            <i class="fas fa-columns"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.profile') }}" class="sidebar-link {% if request.endpoint == 'student.profile' %}active{% endif %}">
+                            <i class="fas fa-id-card"></i> Edit Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.search') }}" class="sidebar-link {% if request.endpoint == 'student.search' %}active{% endif %}">
+                            <i class="fas fa-search"></i> Search Alumni
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.mentorship') }}" class="sidebar-link {% if request.endpoint == 'student.mentorship' %}active{% endif %}">
+                            <i class="fas fa-user-friends"></i> Mentorship
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.events') }}" class="sidebar-link {% if request.endpoint == 'student.events' %}active{% endif %}">
+                            <i class="fas fa-calendar-alt"></i> Events & Webinars
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.jobs') }}" class="sidebar-link {% if request.endpoint == 'student.jobs' %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i> Browse Jobs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.messages') }}" class="sidebar-link {% if request.endpoint == 'student.messages' %}active{% endif %}">
+                            <i class="fas fa-comments"></i> Messages
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color: var(--danger-color);">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </a>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- 2. Main Wrapper -->
+        <div class="main-wrapper" style="{% if not session.get('user_id') %}margin-left: 0;{% endif %}">
+            
+            <!-- Navbar -->
+            <nav class="top-navbar">
+                {% if session.get('user_id') %}
+                    <div class="menu-toggle" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                {% else %}
+                    <div class="sidebar-logo" style="margin-bottom: 0;">
+                        <a href="{{ url_for('home') }}" style="display:flex; align-items:center; gap:0.5rem;">
+                            <i class="fas fa-graduation-cap"></i> AlumniNet
+                        </a>
+                    </div>
+                    <!-- Public Navigation Links -->
+                    <div style="display: flex; gap: 2rem; align-items: center;" class="public-links">
+                        <a href="{{ url_for('home') }}" style="font-weight:600; color: var(--text-secondary);">Home</a>
+                        <a href="{{ url_for('about') }}" style="font-weight:600; color: var(--text-secondary);">About</a>
+                        <a href="{{ url_for('contact') }}" style="font-weight:600; color: var(--text-secondary);">Contact</a>
+                    </div>
+                {% endif %}
+
+                <div class="nav-actions">
+                    <!-- Light/Dark Mode Switcher -->
+                    <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    {% if session.get('user_id') %}
+                        <!-- Notifications Bell -->
+                        <div class="profile-dropdown" style="margin-right: 0.5rem; position: relative;">
+                            <i class="fas fa-bell" style="font-size: 1.2rem; color: var(--text-secondary);"></i>
+                            <span id="notif-badge" class="badge-danger" style="position: absolute; top: -8px; right: -8px; font-size: 0.65rem; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-weight: 700; color: white;">0</span>
+                        </div>
+
+                        <!-- User Profile Dropdown -->
+                        <div class="profile-dropdown">
+                            <img src="{{ url_for('static', filename='uploads/' + session.get('profile_pic', 'default_avatar.png')) }}" alt="Profile" class="avatar-img">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);" class="nav-username">{{ session.get('name') }}</span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: var(--text-secondary);"></i>
+                            <div class="profile-dropdown-content">
+                                {% if session.get('role') == 'admin' %}
+                                    <a href="{{ url_for('admin.profile') }}"><i class="fas fa-user-circle"></i> Edit Profile</a>
+                                {% elif session.get('role') == 'alumni' %}
+                                    <a href="{{ url_for('alumni.profile') }}"><i class="fas fa-user-circle"></i> Profile Setting</a>
+                                {% elif session.get('role') == 'student' %}
+                                    <a href="{{ url_for('student.profile') }}"><i class="fas fa-user-circle"></i> Profile Setting</a>
+                                {% endif %}
+                                <a href="{{ url_for('auth.logout') }}" style="color: var(--danger-color);"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('auth.login_view') }}" class="btn btn-secondary btn-sm">Log In</a>
+                        <a href="{{ url_for('auth.register_view') }}" class="btn btn-primary btn-sm">Sign Up</a>
+                    {% endif %}
+                </div>
+            </nav>
+
+            <!-- 3. Main Content Container -->
+            <main class="content-body">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer for Public View -->
+            {% if not session.get('user_id') %}
+            <footer class="app-footer">
+                <p>&copy; 2026 Alumni Management Portal. Developed with modern technologies and clean standards.</p>
+            </footer>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main JavaScript File -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

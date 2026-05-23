@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Jobs - Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Job & Internship Listings</h1>
+    <p class="page-subtitle">Browse current openings and referral opportunities published by verified alumni.</p>
+</div>
+
+<!-- Search Panel -->
+<div class="glass-panel panel-card" style="margin-bottom: 2rem; padding: 1.25rem 2rem;">
+    <form action="{{ url_for('student.jobs') }}" method="GET" style="display: flex; gap: 1rem; align-items: center; width: 100%;">
+        <div style="flex-grow: 1; position: relative;">
+            <input type="text" name="query" class="form-input" placeholder="Search by title, company, or skills..." value="{{ search_query or '' }}">
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+        {% if search_query %}
+            <a href="{{ url_for('student.jobs') }}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Jobs Listing -->
+<div class="glass-panel panel-card">
+    <div class="panel-header">
+        <h3 class="panel-title"><i class="fas fa-briefcase"></i> Job Openings</h3>
+        <span class="badge badge-primary">{{ jobs|length }} Available</span>
+    </div>
+
+    {% if jobs %}
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for job in jobs %}
+                <div class="glass-panel panel-card" style="margin-bottom: 0; padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                        <div>
+                            <h4 style="font-weight: 700; font-size: 1.2rem; color: var(--text-primary);">{{ job.title }}</h4>
+                            <h5 style="color: var(--accent-color); font-weight: 600; font-size: 0.95rem; margin-top: 0.25rem;">
+                                {{ job.company }} &bull; <i class="fas fa-map-marker-alt"></i> {{ job.location }}
+                            </h5>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                Posted by Alumnus: <strong>{{ job.poster.name }}</strong> on {{ job.created_at.strftime("%d %b %Y") }}
+                            </p>
+                        </div>
+                        
+                        <form action="{{ url_for('student.apply_job', job_id=job.id) }}" method="POST">
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Apply / Ask Referral</button>
+                        </form>
+                    </div>
+
+                    <!-- Skills requirement tags -->
+                    <div style="margin-top: 1rem;">
+                        <strong style="font-size: 0.85rem; color: var(--text-secondary); margin-right: 0.5rem;">Required Skills:</strong>
+                        {% if job.requirements %}
+                            {% for skill in job.requirements.split(',') %}
+                                <span class="skill-tag">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="badge badge-info">No specific skills listed</span>
+                        {% endif %}
+                    </div>
+
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); white-space: pre-wrap;">
+                        {{ job.description }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No job openings found matching your criteria.</p>
+    {% endif %}
+</div>
+{% endblock %}

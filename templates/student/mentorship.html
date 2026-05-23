@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Mentorship Status - Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Mentorship Request Logs</h1>
+    <p class="page-subtitle">Track the status of connection requests sent to college alumni.</p>
+</div>
+
+<div class="glass-panel panel-card">
+    <div class="panel-header">
+        <h3 class="panel-title"><i class="fas fa-user-friends"></i> Mentorship Connections</h3>
+        <span class="badge badge-primary">{{ requests_sent|length }} Sent Requests</span>
+    </div>
+
+    {% if requests_sent %}
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for req in requests_sent %}
+                <div class="request-card" style="padding: 1.25rem 0;">
+                    <div class="user-info-brief">
+                        <img src="{{ url_for('static', filename='uploads/' + req.alumni.profile_pic) }}" class="avatar-img" style="width: 52px; height: 52px;">
+                        <div class="user-details">
+                            <h4 style="font-size: 1.05rem;">{{ req.alumni.name }}</h4>
+                            <p style="font-size: 0.8rem; margin: 0.15rem 0;">
+                                Class of {{ req.alumni.graduation_year }} &bull; {{ req.alumni.company or 'Freelance Specialist' }} ({{ req.alumni.designation or 'Expert' }})
+                            </p>
+                            <p style="font-size: 0.78rem; color: var(--text-secondary);"><i class="far fa-envelope"></i> {{ req.alumni.email }}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        {% if req.status == 'accepted' %}
+                            <span class="badge badge-success"><i class="fas fa-check-circle"></i> Connected</span>
+                            <a href="{{ url_for('student.messages', chat_with=req.alumni_id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-comment-dots"></i> Message
+                            </a>
+                        {% elif req.status == 'pending' %}
+                            <span class="badge badge-warning"><i class="fas fa-hourglass-half"></i> Pending Review</span>
+                        {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Request Declined</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 5rem 2rem; color: var(--text-secondary);">
+            <i class="far fa-user-circle" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1.5rem;"></i>
+            <h3 style="font-weight: 700; color: var(--text-primary);">No Requests Sent Yet</h3>
+            <p style="margin-top: 0.5rem; max-width: 320px; margin: 0.5rem auto 1.5rem;">You need to request connections with alumni to start professional messaging.</p>
+            <a href="{{ url_for('student.search') }}" class="btn btn-primary"><i class="fas fa-search"></i> Search Alumni Directory</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

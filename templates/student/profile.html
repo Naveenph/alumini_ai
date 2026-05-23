@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Profile Setting - Alumni Network System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Profile Configuration</h1>
+    <p class="page-subtitle">Configure your career interests and skills to get personalized mentor & job suggestions.</p>
+</div>
+
+<div class="glass-panel panel-card" style="max-width: 700px; margin: 0 auto;">
+    <div class="panel-header">
+        <h3 class="panel-title"><i class="fas fa-user-edit"></i> Edit Academic Details</h3>
+    </div>
+    
+    <form action="{{ url_for('student.profile') }}" method="POST" enctype="multipart/form-data">
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem;">
+            <img src="{{ url_for('static', filename='uploads/' + student.profile_pic) }}" alt="Profile Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-color); margin-bottom: 1rem;">
+            
+            <div class="form-group" style="text-align: center; width: 100%;">
+                <label for="profile_pic" class="btn btn-secondary btn-sm" style="display: inline-flex; cursor: pointer;">
+                    <i class="fas fa-camera"></i> Change Photo
+                </label>
+                <input type="file" id="profile_pic" name="profile_pic" style="display: none;" accept="image/*">
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">Accepted formats: PNG, JPG, JPEG, GIF.</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name *</label>
+                <input type="text" id="name" name="name" class="form-input" value="{{ student.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address *</label>
+                <input type="email" id="email" name="email" class="form-input" value="{{ student.email }}" required>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label for="graduation_year" class="form-label">Expected Graduation Year *</label>
+                <input type="number" id="graduation_year" name="graduation_year" class="form-input" value="{{ student.graduation_year }}" required min="2020" max="2035">
+            </div>
+
+            <div class="form-group">
+                <label for="domain" class="form-label">Interest Domain</label>
+                <select id="domain" name="domain" class="form-select">
+                    <option value="" {% if not student.domain %}selected{% endif %}>Select Domain</option>
+                    <option value="Software Development" {% if student.domain == "Software Development" %}selected{% endif %}>Software Development</option>
+                    <option value="Data Science" {% if student.domain == "Data Science" %}selected{% endif %}>Data Science</option>
+                    <option value="Product Management" {% if student.domain == "Product Management" %}selected{% endif %}>Product Management</option>
+                    <option value="Marketing" {% if student.domain == "Marketing" %}selected{% endif %}>Marketing</option>
+                    <option value="Finance" {% if student.domain == "Finance" %}selected{% endif %}>Finance</option>
+                    <option value="Human Resources" {% if student.domain == "Human Resources" %}selected{% endif %}>Human Resources</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="skills" class="form-label">Your Skills (Comma Separated)</label>
+            <input type="text" id="skills" name="skills" class="form-input" value="{{ student.skills or '' }}" placeholder="e.g. Python, SQL, C++, HTML, Javascript">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+    </form>
+</div>
+{% endblock %}

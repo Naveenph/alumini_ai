@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Alumni Network System - Welcome{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="margin-bottom: 3rem; overflow: hidden; border-radius: var(--border-radius-lg);">
+    <!-- Hero Banner Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">Empower Your College Network</h1>
+        <p class="hero-subtitle">
+            A unified portal connecting students with alumni. Accelerate your career growth, discover mentorship opportunities, attend exclusive webinars, and find job roles.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <a href="{{ url_for('auth.register_view') }}" class="btn btn-primary">Join the Network</a>
+            <a href="{{ url_for('about') }}" class="btn btn-secondary">Learn More</a>
+        </div>
+
+        <!-- Metric Counter Stats -->
+        <div class="stats-bar">
+            <div class="stat-item-public">
+                <div class="stat-number-public">500+</div>
+                <div class="stat-label-public">Alumni Mentors</div>
+            </div>
+            <div class="stat-item-public">
+                <div class="stat-number-public">1,200+</div>
+                <div class="stat-label-public">Active Students</div>
+            </div>
+            <div class="stat-item-public">
+                <div class="stat-number-public">80+</div>
+                <div class="stat-label-public">Webinars Hosted</div>
+            </div>
+            <div class="stat-item-public">
+                <div class="stat-number-public">300+</div>
+                <div class="stat-label-public">Job Placements</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Features Section -->
+<div style="margin-bottom: 3rem;">
+    <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 700;">Explore Key Offerings</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <!-- Card 1 -->
+        <div class="glass-panel panel-card" style="margin-bottom: 0; text-align: center;">
+            <div class="stat-icon" style="margin: 0 auto 1.5rem;"><i class="fas fa-users"></i></div>
+            <h3 style="margin-bottom: 0.8rem; font-size: 1.25rem;">Student-Alumni Mentorship</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                Students can browse registered and verified alumni, filter by skills or companies, and send requests to connect for direct professional guidance.
+            </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="glass-panel panel-card" style="margin-bottom: 0; text-align: center;">
+            <div class="stat-icon" style="margin: 0 auto 1.5rem; background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(310, 80%, 55%) 100%);"><i class="fas fa-video"></i></div>
+            <h3 style="margin-bottom: 0.8rem; font-size: 1.25rem;">Interactive Webinars</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                Alumni can host and conduct interactive online webinars, allowing students to register and learn about core technologies and industry patterns.
+            </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="glass-panel panel-card" style="margin-bottom: 0; text-align: center;">
+            <div class="stat-icon" style="margin: 0 auto 1.5rem; background: linear-gradient(135deg, hsl(190, 85%, 55%) 0%, hsl(210, 80%, 50%) 100%);"><i class="fas fa-briefcase"></i></div>
+            <h3 style="margin-bottom: 0.8rem; font-size: 1.25rem;">Job Posting & Referral Board</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                Alumni can post openings and referral opportunities directly. Students receive recommendations matching their skills to submit applications.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Success Stories / Testimonials -->
+<div class="glass-panel panel-card" style="background: var(--card-bg); margin-bottom: 2rem;">
+    <h3 style="text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Alumni Success Stories</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 1rem;">
+        <div style="padding: 1rem; border-left: 3px solid var(--accent-color);">
+            <p style="font-style: italic; color: var(--text-secondary); line-height: 1.5;">
+                "Through the AlumniNet system, I connected with an alumnus working at Google. His guidance and subsequent referral helped me land my dream internship."
+            </p>
+            <h5 style="margin-top: 1rem; font-weight: 600;">- Sarah Jenkins, CS Student</h5>
+        </div>
+        <div style="padding: 1rem; border-left: 3px solid var(--accent-color);">
+            <p style="font-style: italic; color: var(--text-secondary); line-height: 1.5;">
+                "Hosting webinars allowed me to share practical DevOps workflows with junior students. It is highly rewarding to give back to my alma mater."
+            </p>
+            <h5 style="margin-top: 1rem; font-weight: 600;">- Mark Reynolds, DevOps Engineer, Alumni</h5>
+        </div>
+    </div>
+</div>
+{% endblock %}

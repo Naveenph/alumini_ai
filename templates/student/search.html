@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Alumni - Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Alumni Directory Search</h1>
+    <p class="page-subtitle">Find college alumni by company, skills, work domain, or graduation year to establish connection.</p>
+</div>
+
+<!-- Search & Filtering Panels -->
+<div class="glass-panel panel-card" style="margin-bottom: 2.5rem; padding: 1.5rem 2rem;">
+    <form action="{{ url_for('student.search') }}" method="GET">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="query" class="form-label" style="margin-bottom: 0.3rem;">Name or Email</label>
+                <input type="text" id="query" name="query" class="form-input" placeholder="e.g. Jane" value="{{ request.args.get('query', '') }}">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="company" class="form-label" style="margin-bottom: 0.3rem;">Company</label>
+                <input type="text" id="company" name="company" class="form-input" placeholder="e.g. Microsoft" value="{{ request.args.get('company', '') }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="domain" class="form-label" style="margin-bottom: 0.3rem;">Domain</label>
+                <select id="domain" name="domain" class="form-select">
+                    <option value="">All Domains</option>
+                    <option value="Software Development" {% if request.args.get('domain') == 'Software Development' %}selected{% endif %}>Software Dev</option>
+                    <option value="Data Science" {% if request.args.get('domain') == 'Data Science' %}selected{% endif %}>Data Science</option>
+                    <option value="Product Management" {% if request.args.get('domain') == 'Product Management' %}selected{% endif %}>Product Mgmt</option>
+                    <option value="Marketing" {% if request.args.get('domain') == 'Marketing' %}selected{% endif %}>Marketing</option>
+                    <option value="Finance" {% if request.args.get('domain') == 'Finance' %}selected{% endif %}>Finance</option>
+                    <option value="Human Resources" {% if request.args.get('domain') == 'Human Resources' %}selected{% endif %}>HR</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="skills" class="form-label" style="margin-bottom: 0.3rem;">Skill Tag</label>
+                <input type="text" id="skills" name="skills" class="form-input" placeholder="e.g. AWS" value="{{ request.args.get('skills', '') }}">
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex-grow:1; justify-content: center;"><i class="fas fa-filter"></i> Filter</button>
+                <a href="{{ url_for('student.search') }}" class="btn btn-secondary" style="justify-content: center;"><i class="fas fa-redo"></i></a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Search Results Grid -->
+{% if alumni_list %}
+    <div class="profile-grid">
+        {% for alum in alumni_list %}
+            <div class="glass-panel profile-card">
+                <img src="{{ url_for('static', filename='uploads/' + alum.profile_pic) }}" alt="{{ alum.name }}" class="profile-card-avatar">
+                
+                <h3 class="profile-card-name">{{ alum.name }}</h3>
+                <div class="badge badge-primary">Class of {{ alum.graduation_year }}</div>
+                
+                <p class="profile-card-details" style="font-weight: 500; color: var(--text-primary);">
+                    {{ alum.designation or 'Industry Professional' }}<br>
+                    <span style="color: var(--accent-color); font-weight: 600;">@ {{ alum.company or 'Specialist' }}</span>
+                </p>
+
+                <!-- Work domain badge -->
+                {% if alum.domain %}
+                    <span class="badge badge-info">{{ alum.domain }}</span>
+                {% endif %}
+
+                <!-- Skills summary tags -->
+                <div style="margin: 0.8rem 0 1.25rem;">
+                    {% if alum.skills %}
+                        {% for skill in alum.skills.split(',') %}
+                            <span class="skill-tag">{{ skill.strip() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">No listed skills</span>
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    {% if alum.linkedin %}
+                        <a href="{{ alum.linkedin }}" target="_blank" class="btn btn-secondary btn-sm" style="justify-content: center;">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                    {% endif %}
+
+                    {% set status = connections.get(alum.id) %}
+                    {% if status == 'accepted' %}
+                        <a href="{{ url_for('student.messages', chat_with=alum.id) }}" class="btn btn-success btn-sm" style="justify-content: center;">
+                            <i class="fas fa-comment-dots"></i> Message Mentor
+                        </a>
+                    {% elif status == 'pending' %}
+                        <button class="btn btn-secondary btn-sm" style="justify-content: center; opacity: 0.65; cursor: not-allowed;" disabled>
+                            <i class="fas fa-clock"></i> Request Pending
+                        </button>
+                    {% else %}
+                        <form action="{{ url_for('student.connect', alumni_id=alum.id) }}" method="POST">
+                            <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-user-plus"></i> Connect & Request Mentorship
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-panel panel-card" style="text-align: center; padding: 5rem 2rem; color: var(--text-secondary);">
+        <i class="fas fa-search-minus" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1.5rem;"></i>
+        <h3 style="font-weight: 700; color: var(--text-primary);">No Alumni Found</h3>
+        <p style="margin-top: 0.5rem;">Try relaxing your search query or removing filters to expand findings.</p>
+    </div>
+{% endif %}
+{% endblock %}

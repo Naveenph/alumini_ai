@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Events - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">College Events Management</h1>
+    <p class="page-subtitle">Schedule official campus events and track registration lists.</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Event Creator Form -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-calendar-plus" style="color: var(--accent-color);"></i> Create New Event</h3>
+        </div>
+        
+        <form action="{{ url_for('admin.manage_events') }}" method="POST">
+            <div class="form-group">
+                <label for="title" class="form-label">Event Title *</label>
+                <input type="text" id="title" name="title" class="form-input" placeholder="e.g. Annual Alumni Meet 2026" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description" class="form-label">Description *</label>
+                <textarea id="description" name="description" class="form-input form-textarea" placeholder="Provide schedule, agenda and details..." required></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="event_date" class="form-label">Date & Time *</label>
+                    <input type="datetime-local" id="event_date" name="event_date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="location" class="form-label">Location / Platform *</label>
+                    <input type="text" id="location" name="location" class="form-input" placeholder="e.g. Seminar Hall A / Zoom" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Launch Event
+            </button>
+        </form>
+    </div>
+
+    <!-- Scheduled Events List -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-calendar-alt"></i> Scheduled Events</h3>
+            <span class="badge badge-primary">{{ events|length }} Active</span>
+        </div>
+        
+        {% if events %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for event in events %}
+                    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                            <div>
+                                <h4 style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">{{ event.title }}</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: flex; gap: 1rem;">
+                                    <span><i class="far fa-clock"></i> {{ event.event_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+                                    <span><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
+                                </p>
+                            </div>
+                            <span class="badge badge-info">{{ reg_counts[event.id] }} Registrants</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0.75rem 0;">
+                            {{ event.description }}
+                        </p>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <form action="{{ url_for('admin.delete_event', event_id=event.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this event?')">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i> Cancel Event</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary); text-align: center; padding: 3rem;">No scheduled events at this time.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

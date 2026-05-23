@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Webinars - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Alumni Webinars Moderation</h1>
+    <p class="page-subtitle">Supervise webinars hosted by college alumni and review registrant turnouts.</p>
+</div>
+
+<div class="glass-panel panel-card">
+    <div class="panel-header">
+        <h3 class="panel-title"><i class="fas fa-video"></i> Scheduled Webinars Directory</h3>
+        <span class="badge badge-primary">{{ webinars|length }} Live</span>
+    </div>
+    
+    {% if webinars %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+            {% for web in webinars %}
+                <div class="glass-panel panel-card" style="margin-bottom: 0; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem;">
+                            <span class="badge badge-info"><i class="far fa-user"></i> Host: {{ web.speaker.name }}</span>
+                            <span class="badge badge-success">{{ reg_counts[web.id] }} Registrants</span>
+                        </div>
+                        <h4 style="font-weight: 700; font-size: 1.15rem; margin-bottom: 0.5rem; color: var(--text-primary);">{{ web.title }}</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 0.8rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span><i class="far fa-calendar-alt" style="margin-right: 0.3rem;"></i> {{ web.webinar_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+                            <span><i class="fas fa-link" style="margin-right: 0.3rem;"></i> <a href="{{ web.link }}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Join Webinar Link</a></span>
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.25rem;">
+                            {{ web.description[:180] }}{% if web.description|length > 180 %}...{% endif %}
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
+                        <form action="{{ url_for('admin.delete_webinar', webinar_id=web.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this webinar posting? Registrations will also be canceled.')">
+                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i> Remove Webinar</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No alumni-hosted webinars have been scheduled yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

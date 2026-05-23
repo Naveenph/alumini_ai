@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Alumni Network System - About Us{% endblock %}
+
+{% block content %}
+<div class="glass-panel panel-card" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">About AlumniNet System</h2>
+    <p style="color: var(--text-secondary); line-height: 1.7; font-size: 1.05rem; margin-bottom: 2rem;">
+        The Alumni Management Portal is a centralized networking and collaboration application. Designed to bridge the gap between educational institutions and active professional alumni, our system serves as a digital directory and career support utility for students, alumni, and administrators.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+        <div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem;"><i class="fas fa-bullseye accent-text" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Our Mission</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                To create a vibrant, active professional ecosystem where students obtain direct access to industry leaders, explore career fields, find mentors, and transition from academics to industry careers.
+            </p>
+        </div>
+        <div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem;"><i class="fas fa-shield-alt accent-text" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Safe & Verified</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                Every alumni and student registration is thoroughly reviewed by the system administrators. Password hashing and authentication mechanisms ensure complete data safety.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="glass-panel panel-card">
+    <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Role & Permission Structure</h3>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-primary); font-weight: 700;">
+                    <th style="padding: 1rem;">User Role</th>
+                    <th style="padding: 1rem;">Access & Privileges</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem; font-weight: 600;">System Administrator</td>
+                    <td style="padding: 1rem; color: var(--text-secondary); line-height: 1.5;">
+                        Full moderation control. Review and approve/reject all student and alumni signups, delete accounts, view logs, create official college events, broadcast system announcements.
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem; font-weight: 600;">Verified Alumni</td>
+                    <td style="padding: 1rem; color: var(--text-secondary); line-height: 1.5;">
+                        Create and edit professional profiles (linked to LinkedIn), host interactive technical webinars for students, post job listings/referral openings, and message connected mentees.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 1rem; font-weight: 600;">Registered Student</td>
+                    <td style="padding: 1rem; color: var(--text-secondary); line-height: 1.5;">
+                        Browse verified alumni directories with search filters, request mentorship connections, register for admin events and webinars, apply for jobs, and receive matching recommendations.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

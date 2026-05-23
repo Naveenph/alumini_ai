@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Alumni Network System - Contact Us{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Contact Form Panel -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <h2 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Get in Touch</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">If you have any technical issues or need direct support, please send us a message below.</p>
+        
+        <form action="{{ url_for('contact') }}" method="POST">
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" id="name" name="name" class="form-input" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email address" required>
+            </div>
+
+            <div class="form-group">
+                <label for="subject" class="form-label">Subject</label>
+                <input type="text" id="subject" name="subject" class="form-input" placeholder="How can we help you?" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message" class="form-label">Message Details</label>
+                <textarea id="message" name="message" class="form-input form-textarea" placeholder="Describe your inquiry..." required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+        </form>
+    </div>
+
+    <!-- Info Column -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div class="glass-panel panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 1.3rem; margin-bottom: 1rem;"><i class="fas fa-map-marker-alt accent-text" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Administration Office</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                College Campus building,<br>
+                Administrative Wing, Suite 402<br>
+                Tech City, 560001
+            </p>
+        </div>
+
+        <div class="glass-panel panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 1.3rem; margin-bottom: 1rem;"><i class="fas fa-phone-alt accent-text" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Contact Details</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                <strong>General Info:</strong> +1 (555) 019-2834
+            </p>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                <strong>Support Desk:</strong> support@alumninetwork.edu
+            </p>
+        </div>
+
+        <div class="glass-panel panel-card" style="margin-bottom: 0; background: var(--accent-light); border-color: var(--accent-color);">
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--accent-color);">Need Fast Help?</h3>
+            <p style="color: var(--text-secondary); line-height: 1.5; font-size: 0.9rem;">
+                Please check the <strong>About Us</strong> page to see details regarding role permissions, registration guidelines, and account approval.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

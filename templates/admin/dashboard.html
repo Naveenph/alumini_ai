@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Alumni Network System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">System Overview</h1>
+    <p class="page-subtitle">Track college activity metrics, registration requests, and broadcast announcements.</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <!-- Stat 1 -->
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_alumni }}</div>
+            <div class="stat-label">Total Alumni</div>
+        </div>
+        <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+    </div>
+    
+    <!-- Stat 2 -->
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(295, 80%, 55%) 100%);"><i class="fas fa-user-graduate"></i></div>
+    </div>
+
+    <!-- Stat 3 -->
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_events }}</div>
+            <div class="stat-label">Total Events</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(190, 85%, 55%) 0%, hsl(210, 80%, 50%) 100%);"><i class="fas fa-calendar-alt"></i></div>
+    </div>
+
+    <!-- Stat 4 -->
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_webinars }}</div>
+            <div class="stat-label">Total Webinars</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(325, 80%, 55%) 0%, hsl(345, 85%, 50%) 100%);"><i class="fas fa-video"></i></div>
+    </div>
+
+    <!-- Stat 5 -->
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_jobs }}</div>
+            <div class="stat-label">Job Postings</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(150, 80%, 50%) 0%, hsl(170, 85%, 45%) 100%);"><i class="fas fa-briefcase"></i></div>
+    </div>
+</div>
+
+<!-- Main Split Grid -->
+<div class="dashboard-grid">
+    <!-- Left Column: Pending Approvals & Broadcast -->
+    <div>
+        <!-- Pending Alumni Registrations -->
+        <div class="glass-panel panel-card">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-clock" style="color: var(--warning-color);"></i> Pending Alumni Approvals</h3>
+                <span class="badge badge-warning">{{ pending_alumni|length }} Pending</span>
+            </div>
+            
+            {% if pending_alumni %}
+                <div style="display: flex; flex-direction: column;">
+                    {% for alum in pending_alumni %}
+                        <div class="request-card">
+                            <div class="user-info-brief">
+                                <img src="{{ url_for('static', filename='uploads/' + alum.profile_pic) }}" class="avatar-img" style="width: 48px; height: 48px;">
+                                <div class="user-details">
+                                    <h4>{{ alum.name }}</h4>
+                                    <p>Class of {{ alum.graduation_year }} | {{ alum.email }}</p>
+                                    <p>Company: {{ alum.company or 'Not Set' }} ({{ alum.designation or 'Not Set' }})</p>
+                                </div>
+                            </div>
+                            <div class="request-actions">
+                                <form action="{{ url_for('admin.approve_alumni', user_id=alum.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                                </form>
+                                <form action="{{ url_for('admin.reject_alumni', user_id=alum.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Reject</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 1.5rem;">No alumni pending approval at this time.</p>
+            {% endif %}
+        </div>
+
+        <!-- Pending Student Registrations -->
+        <div class="glass-panel panel-card">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-clock" style="color: var(--warning-color);"></i> Pending Student Approvals</h3>
+                <span class="badge badge-warning">{{ pending_students|length }} Pending</span>
+            </div>
+            
+            {% if pending_students %}
+                <div style="display: flex; flex-direction: column;">
+                    {% for student in pending_students %}
+                        <div class="request-card">
+                            <div class="user-info-brief">
+                                <img src="{{ url_for('static', filename='uploads/' + student.profile_pic) }}" class="avatar-img" style="width: 48px; height: 48px;">
+                                <div class="user-details">
+                                    <h4>{{ student.name }}</h4>
+                                    <p>Graduation: {{ student.graduation_year }} | {{ student.email }}</p>
+                                </div>
+                            </div>
+                            <div class="request-actions">
+                                <form action="{{ url_for('admin.approve_student', user_id=student.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                                </form>
+                                <form action="{{ url_for('admin.reject_student', user_id=student.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Reject</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 1.5rem;">No students pending approval at this time.</p>
+            {% endif %}
+        </div>
+
+        <!-- Global Announcement Form -->
+        <div class="glass-panel panel-card">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-bullhorn" style="color: var(--accent-color);"></i> Broadcast Global Announcement</h3>
+            </div>
+            <form action="{{ url_for('admin.send_announcement') }}" method="POST">
+                <div class="form-group">
+                    <textarea name="announcement" class="form-input form-textarea" placeholder="Type system-wide announcement message here. This will notify all approved students and alumni." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-paper-plane"></i> Broadcast Message
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Visual Charts & Activity Logs -->
+    <div>
+        <!-- Chart 1: User Distribution -->
+        <div class="glass-panel panel-card" style="height: 320px;">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-chart-pie" style="color: var(--accent-color);"></i> User Distribution</h3>
+            </div>
+            <div style="position: relative; height: 200px;">
+                <canvas id="userDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Activity counts -->
+        <div class="glass-panel panel-card" style="height: 320px;">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-chart-bar" style="color: var(--accent-color);"></i> Portal Activities</h3>
+            </div>
+            <div style="position: relative; height: 200px;">
+                <canvas id="activityMetricsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- System Activity Logs -->
+        <div class="glass-panel panel-card">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-list-ul" style="color: var(--text-secondary);"></i> Activity Logs</h3>
+            </div>
+            {% if activity_logs %}
+                <ul class="activity-list">
+                    {% for log in activity_logs %}
+                        <li class="activity-item">
+                            <div style="display: flex; flex-direction: column;">
+                                <strong style="font-weight:600;">{{ log.action }}</strong>
+                                <span style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">{{ log.details }}</span>
+                            </div>
+                            <div class="activity-time">{{ log.created_at.strftime("%I:%M %p") }}</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No recent activities logged.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

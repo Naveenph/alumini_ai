@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - Alumni Network System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Welcome back, {{ student.name }}</h1>
+    <p class="page-subtitle">Track your registration logs, check AI recommendations, and browse alerts.</p>
+</div>
+
+<!-- Dashboard Metrics -->
+<div class="stats-grid">
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ connections_count }}</div>
+            <div class="stat-label">Active Mentors</div>
+        </div>
+        <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
+    </div>
+    
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ events_count }}</div>
+            <div class="stat-label">Events Registered</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(295, 80%, 55%) 100%);"><i class="fas fa-calendar-check"></i></div>
+    </div>
+
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ webinars_count }}</div>
+            <div class="stat-label">Webinars Registered</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(325, 80%, 55%) 0%, hsl(345, 85%, 50%) 100%);"><i class="fas fa-play-circle"></i></div>
+    </div>
+</div>
+
+<!-- Main Split Grid -->
+<div class="dashboard-grid">
+    <!-- Left Column: AI Recommendations -->
+    <div>
+        <!-- AI Recommended Mentors -->
+        <div class="glass-panel panel-card">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-brain" style="color: var(--accent-color);"></i> AI Recommended Mentors</h3>
+                <span class="badge badge-success">Smart Match</span>
+            </div>
+            
+            <div class="rec-section">
+                {% if rec_alumni %}
+                    <div class="rec-list">
+                        {% for item in rec_alumni %}
+                            {% set alum = item.alumni %}
+                            <div class="glass-panel rec-card">
+                                <div class="rec-badge-score">
+                                    {{ item.score }}%
+                                    <span>Match</span>
+                                </div>
+                                <img src="{{ url_for('static', filename='uploads/' + alum.profile_pic) }}" class="avatar-img" style="width: 50px; height: 50px;">
+                                <div style="flex-grow: 1;">
+                                    <h4 style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">{{ alum.name }}</h4>
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                                        Class of {{ alum.graduation_year }} &bull; {{ alum.company or 'Freelancer' }} ({{ alum.designation or 'Expert' }})
+                                    </p>
+                                    <p style="font-size: 0.72rem; color: var(--accent-color); font-weight: 600;">
+                                        <i class="fas fa-info-circle"></i> Reason: {{ item.reason }}
+                                    </p>
+                                </div>
+                                <form action="{{ url_for('student.connect', alumni_id=alum.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Connect</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-secondary); padding: 1.5rem; text-align: center; font-size: 0.9rem;">
+                        Add more skills or specify your preferred domain in your profile settings to get personalized mentor recommendations!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- AI Recommended Jobs -->
+        <div class="glass-panel panel-card">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-briefcase" style="color: var(--accent-color);"></i> AI Recommended Career Roles</h3>
+                <span class="badge badge-success">Smart Match</span>
+            </div>
+            
+            <div class="rec-section">
+                {% if rec_jobs %}
+                    <div class="rec-list">
+                        {% for item in rec_jobs %}
+                            {% set job = item.job %}
+                            <div class="glass-panel rec-card">
+                                <div class="rec-badge-score" style="background: linear-gradient(135deg, hsl(150, 80%, 50%) 0%, hsl(170, 85%, 45%) 100%);">
+                                    {{ item.score }}%
+                                    <span>Match</span>
+                                </div>
+                                <div style="flex-grow: 1;">
+                                    <h4 style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">{{ job.title }}</h4>
+                                    <h5 style="color: var(--accent-color); font-size: 0.82rem; font-weight: 600;">{{ job.company }} &bull; {{ job.location }}</h5>
+                                    <p style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                        <i class="fas fa-info-circle"></i> Reason: {{ item.reason }}
+                                    </p>
+                                </div>
+                                <form action="{{ url_for('student.apply_job', job_id=job.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-file-signature"></i> Apply</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-secondary); padding: 1.5rem; text-align: center; font-size: 0.9rem;">
+                        No job recommendations found. Complete your profile details to discover job matches.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Alerts / System Notifications -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-bell" style="color: var(--warning-color);"></i> Notifications & Alerts</h3>
+        </div>
+        
+        <ul id="notif-list-dynamic" class="activity-list">
+            {% if notifications %}
+                {% for notif in notifications %}
+                    <li class="activity-item" style="border-left-color: var(--info-color);">
+                        <div><i class="fas fa-info-circle" style="color: var(--info-color); margin-right: 0.5rem;"></i>{{ notif.message }}</div>
+                        <div class="activity-time">{{ notif.created_at.strftime("%d %b, %H:%M") }}</div>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No new notifications.</p>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}System Reports - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Analytical Reports</h1>
+    <p class="page-subtitle">Inspect user registrations ratio, approval breakdowns, and network totals.</p>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+    <!-- Registration Breakdown -->
+    <div class="glass-panel panel-card">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-users"></i> Registration Breakdowns</h3>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Alumni Approval Rate -->
+            <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem; font-size: 0.95rem;">
+                    <strong>Alumni Accounts</strong>
+                    <span style="color: var(--text-secondary);">{{ alumni_approved }} Approved / {{ alumni_pending }} Pending</span>
+                </div>
+                <div style="background: var(--border-color); height: 10px; border-radius: 5px; overflow:hidden;">
+                    {% set total_a = alumni_approved + alumni_pending %}
+                    {% if total_a > 0 %}
+                        {% set p_a = (alumni_approved / total_a) * 100 %}
+                        <div style="background: var(--accent-gradient); width: {{ p_a }}%; height: 100%;"></div>
+                    {% else %}
+                        <div style="background: var(--accent-gradient); width: 0%; height: 100%;"></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Student Approval Rate -->
+            <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem; font-size: 0.95rem;">
+                    <strong>Student Accounts</strong>
+                    <span style="color: var(--text-secondary);">{{ student_approved }} Approved / {{ student_pending }} Pending</span>
+                </div>
+                <div style="background: var(--border-color); height: 10px; border-radius: 5px; overflow:hidden;">
+                    {% set total_s = student_approved + student_pending %}
+                    {% if total_s > 0 %}
+                        {% set p_s = (student_approved / total_s) * 100 %}
+                        <div style="background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(295, 80%, 55%) 100%); width: {{ p_s }}%; height: 100%;"></div>
+                    {% else %}
+                        <div style="background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(295, 80%, 55%) 100%); width: 0%; height: 100%;"></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Numerical Totals</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center;">
+                <div style="background: var(--bg-primary); padding: 1rem; border-radius: 10px;">
+                    <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent-color);">{{ alumni_approved + student_approved }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Total Active Users</div>
+                </div>
+                <div style="background: var(--bg-primary); padding: 1rem; border-radius: 10px;">
+                    <div style="font-size: 1.8rem; font-weight: 800; color: var(--warning-color);">{{ alumni_pending + student_pending }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Total Pending Users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytical Details chart -->
+    <div class="glass-panel panel-card" style="height: 380px;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-chart-line"></i> Engagement Analytics</h3>
+        </div>
+        <div style="position: relative; height: 260px;">
+            <canvas id="analyticalReportBarChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const canvas = document.getElementById("analyticalReportBarChart");
+        if (canvas) {
+            const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
+            const textThemeColor = isDarkMode ? "#94a3b8" : "#64748b";
+            const gridColor = isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: ['Events Scheduled', 'Webinars Hosted', 'Career Opportunities'],
+                    datasets: [{
+                        label: 'Metrics count',
+                        data: [{{ events_count }}, {{ webinars_count }}, {{ jobs_count }}],
+                        backgroundColor: [
+                            'rgba(6, 182, 212, 0.85)',
+                            'rgba(245, 158, 11, 0.85)',
+                            'rgba(16, 185, 129, 0.85)'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textThemeColor, font: { family: 'Outfit' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: textThemeColor, precision: 0, font: { family: 'Outfit' } }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

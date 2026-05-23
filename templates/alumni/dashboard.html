@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Alumni Dashboard - Alumni Network System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Welcome back, {{ alumni.name }}</h1>
+    <p class="page-subtitle">Track your student connections, post jobs, and schedule webinar workshops.</p>
+</div>
+
+<!-- Dashboard Metrics -->
+<div class="stats-grid">
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_connections }}</div>
+            <div class="stat-label">Active Connections</div>
+        </div>
+        <div class="stat-icon"><i class="fas fa-link"></i></div>
+    </div>
+    
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_jobs }}</div>
+            <div class="stat-label">Jobs Posted</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(295, 80%, 55%) 100%);"><i class="fas fa-briefcase"></i></div>
+    </div>
+
+    <div class="glass-panel stat-card">
+        <div class="stat-info">
+            <div class="stat-value">{{ total_webinars }}</div>
+            <div class="stat-label">Webinars Scheduled</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, hsl(325, 80%, 55%) 0%, hsl(345, 85%, 50%) 100%);"><i class="fas fa-video"></i></div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Left Column: Pending Mentorship Requests -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-user-plus" style="color: var(--warning-color);"></i> Student Mentorship Requests</h3>
+            <span class="badge badge-warning">{{ pending_requests|length }} Requests</span>
+        </div>
+        
+        {% if pending_requests %}
+            <div style="display: flex; flex-direction: column;">
+                {% for req in pending_requests %}
+                    <div class="request-card">
+                        <div class="user-info-brief">
+                            <img src="{{ url_for('static', filename='uploads/' + req.student.profile_pic) }}" class="avatar-img" style="width: 48px; height: 48px;">
+                            <div class="user-details">
+                                <h4>{{ req.student.name }}</h4>
+                                <p>Graduation: {{ req.student.graduation_year }} | {{ req.student.email }}</p>
+                                {% if req.student.skills %}
+                                    <p style="margin-top:0.25rem;">
+                                        {% for skill in req.student.skills.split(',') %}
+                                            <span class="skill-tag" style="font-size: 0.7rem;">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <form action="{{ url_for('alumni.handle_request', req_id=req.id, action='approve') }}" method="POST">
+                                <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Accept</button>
+                            </form>
+                            <form action="{{ url_for('alumni.handle_request', req_id=req.id, action='reject') }}" method="POST">
+                                <button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Decline</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                <i class="far fa-smile" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                <p>No new student connection requests at this time.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Announcements -->
+    <div class="glass-panel panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-bullhorn" style="color: var(--accent-color);"></i> Campus Announcements</h3>
+        </div>
+        
+        <ul id="notif-list-dynamic" class="activity-list">
+            {% if announcements %}
+                {% for ann in announcements %}
+                    <li class="activity-item">
+                        <div><i class="fas fa-bell accent-text" style="margin-right: 0.5rem; color: var(--accent-color);"></i>{{ ann.message }}</div>
+                        <div class="activity-time">{{ ann.created_at.strftime("%d %b, %H:%M") }}</div>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No announcements broadcasted yet.</p>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

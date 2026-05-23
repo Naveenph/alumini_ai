@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Webinar Registrants - Alumni Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="{{ url_for('alumni.webinars') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+        <div>
+            <h1 class="page-title">Webinar Registrants</h1>
+            <p class="page-subtitle">Inspect student attendance listings for: <strong>{{ webinar.title }}</strong></p>
+        </div>
+    </div>
+</div>
+
+<div class="glass-panel panel-card">
+    <div class="panel-header">
+        <h3 class="panel-title"><i class="fas fa-user-graduate"></i> Student Registrants</h3>
+        <span class="badge badge-success">{{ registrations|length }} Registered</span>
+    </div>
+
+    {% if registrations %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-primary); font-weight: 700;">
+                        <th style="padding: 1rem;">Student Details</th>
+                        <th style="padding: 1rem;">Graduation Year</th>
+                        <th style="padding: 1rem;">Registered On</th>
+                        <th style="padding: 1rem;">Skills Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registrations %}
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                    <img src="{{ url_for('static', filename='uploads/' + reg.student.profile_pic) }}" class="avatar-img" style="width: 36px; height: 36px;">
+                                    <div>
+                                        <h5 style="font-weight: 600;">{{ reg.student.name }}</h5>
+                                        <p style="font-size: 0.75rem; color: var(--text-secondary);">{{ reg.student.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem; color: var(--text-secondary);">{{ reg.student.graduation_year }}</td>
+                            <td style="padding: 1rem; color: var(--text-secondary);">{{ reg.registered_at.strftime("%d %b %Y, %H:%M") }}</td>
+                            <td style="padding: 1rem;">
+                                {% if reg.student.skills %}
+                                    {% for skill in reg.student.skills.split(',') %}
+                                        <span class="skill-tag" style="font-size: 0.7rem;">{{ skill.strip() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">No skills specified</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No students have registered for this webinar yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

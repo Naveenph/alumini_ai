@@ -37,7 +37,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <i class="fas fa-graduation-cap"></i>
-                <span>AlumniNet</span>
+                <span>Alumni Network</span>
             </div>
             <ul class="sidebar-menu">
                 {% if session.get('role') == 'admin' %}
@@ -114,6 +114,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ url_for('student.ai_recommendations') }}" class="sidebar-link {% if request.endpoint == 'student.ai_recommendations' %}active{% endif %}" style="position:relative;">
+                            <i class="fas fa-robot"></i> AI Recommendations
+                            <span style="position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); background:linear-gradient(135deg,hsl(245,85%,62%),hsl(295,80%,58%)); color:#fff; font-size:0.55rem; font-weight:700; padding:0.15rem 0.4rem; border-radius:99px; letter-spacing:0.03em;">AI</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ url_for('student.mentorship') }}" class="sidebar-link {% if request.endpoint == 'student.mentorship' %}active{% endif %}">
                             <i class="fas fa-user-friends"></i> Mentorship
                         </a>
@@ -155,7 +161,7 @@
                 {% else %}
                     <div class="sidebar-logo" style="margin-bottom: 0;">
                         <a href="{{ url_for('home') }}" style="display:flex; align-items:center; gap:0.5rem;">
-                            <i class="fas fa-graduation-cap"></i> AlumniNet
+                            <i class="fas fa-graduation-cap"></i> Alumni Network
                         </a>
                     </div>
                     <!-- Public Navigation Links -->

@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Alumni Recommendations - Student Dashboard{% endblock %}
+
+{% block head %}
+<style>
+  /* ── AI Recommendations Page Styles ───────────────────────────────── */
+  .ai-hero {
+    background: linear-gradient(135deg, hsl(245,85%,22%) 0%, hsl(280,75%,18%) 60%, hsl(320,70%,20%) 100%);
+    border-radius: 1.25rem;
+    padding: 2.5rem 2rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .ai-hero-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.4rem;
+  }
+  .ai-hero-sub {
+    color: rgba(255,255,255,0.72);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+  /* Profile completeness bar */
+  .completeness-bar-wrap {
+    background: rgba(255,255,255,0.12);
+    border-radius: 99px;
+    height: 8px;
+    width: 260px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .completeness-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, hsl(140,75%,55%), hsl(170,80%,50%));
+    transition: width 1s ease;
+  }
+  .completeness-label {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.75);
+    margin-top: 0.4rem;
+  }
+
+  /* ── Filter Bar ───────────────────────────────────────────────────── */
+  .ai-filter-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.9rem;
+    align-items: flex-end;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 2rem;
+  }
+  .ai-filter-bar .filter-icon-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+
+  /* ── Results Header ───────────────────────────────────────────────── */
+  .results-meta {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .results-count-badge {
+    background: linear-gradient(135deg, hsl(245,85%,60%), hsl(295,75%,55%));
+    color: #fff;
+    padding: 0.3rem 0.9rem;
+    border-radius: 99px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .sort-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Alumni Recommendation Card ───────────────────────────────────── */
+  .ai-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  .ai-alumni-card {
+    border-radius: 1.1rem;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .ai-alumni-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+  }
+
+  /* Score badge ribbon */
+  .score-ribbon {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #fff;
+    line-height: 1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+  .score-ribbon small {
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .score-high   { background: linear-gradient(135deg,hsl(140,80%,45%),hsl(165,80%,40%)); }
+  .score-medium { background: linear-gradient(135deg,hsl(38,95%,52%),hsl(20,90%,52%));  }
+  .score-low    { background: linear-gradient(135deg,hsl(350,80%,55%),hsl(15,80%,52%)); }
+
+  /* Card avatar row */
+  .card-avatar-row {
+    display: flex; align-items: center; gap: 0.9rem;
+    padding-right: 4rem; /* avoid score ribbon overlap */
+  }
+  .card-avatar {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-color);
+    flex-shrink: 0;
+  }
+  .card-name { font-weight: 800; font-size: 1.05rem; color: var(--text-primary); line-height: 1.2; }
+  .card-role { font-size: 0.8rem; color: var(--accent-color); font-weight: 600; margin-top: 0.15rem; }
+  .card-company { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem; }
+
+  /* Skills row */
+  .card-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .skill-chip {
+    background: rgba(124,58,237,0.12);
+    color: hsl(245,80%,62%);
+    border: 1px solid rgba(124,58,237,0.2);
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  /* Reason box */
+  .reason-box {
+    background: rgba(124,58,237,0.07);
+    border-left: 3px solid var(--accent-color);
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .reason-box i { color: var(--accent-color); margin-right: 0.3rem; }
+
+  /* Card action bar */
+  .card-actions {
+    display: flex; gap: 0.6rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.9rem;
+    margin-top: auto;
+  }
+  .card-actions form { flex-grow: 1; }
+  .card-actions .btn { width: 100%; justify-content: center; }
+
+  /* Empty state */
+  .ai-empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--text-secondary);
+  }
+  .ai-empty-state i { font-size: 4.5rem; color: var(--text-muted); margin-bottom: 1.25rem; display: block; }
+  .ai-empty-state h3 { font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+
+  /* Profile prompt */
+  .profile-prompt {
+    display: flex; align-items: center; gap: 1rem;
+    background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(167,139,250,0.08));
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 0.85rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .profile-prompt i { font-size: 1.5rem; color: var(--accent-color); }
+  .profile-prompt a { color: var(--accent-color); font-weight: 700; text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .ai-card-grid { grid-template-columns: 1fr; }
+    .ai-hero-title { font-size: 1.5rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── AI Hero Banner ─────────────────────────────────────────────────── -->
+<div class="ai-hero">
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+        <div style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-robot" style="font-size:1.3rem;color:#fff;"></i>
+        </div>
+        <span style="color:rgba(255,255,255,0.7);font-size:0.8rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Powered by Smart Matching</span>
+      </div>
+      <h1 class="ai-hero-title">AI Alumni Recommender</h1>
+      <p class="ai-hero-sub">Alumni ranked for <strong style="color:#fff;">{{ student.name }}</strong> — matched by skills, job location, domain &amp; graduation year.</p>
+    </div>
+
+    <!-- Profile Completeness -->
+    <div style="text-align:right;">
+      <div style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.65);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Profile Strength</div>
+      <div class="completeness-bar-wrap">
+        <div class="completeness-bar-fill" style="width:{{ profile_score }}%;"></div>
+      </div>
+      <div class="completeness-label">{{ profile_score }}% complete — 
+        {% if profile_score < 100 %}
+          <a href="{{ url_for('student.profile') }}" style="color:hsl(140,80%,65%);font-weight:700;">boost matches ↗</a>
+        {% else %}
+          fully optimized ✓
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat chips -->
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.25rem;">
+    <div style="background:rgba(255,255,255,0.12);border-radius:0.6rem;padding:0.5rem 1rem;font-size:0.8rem;color:#fff;">
+      <i class="fas fa-users"></i> <strong>{{ rec_alumni|length }}</strong> matches found
+    </div>
+    {% if student.skills %}
+    <div style="background:rgba(255,255,255,0.12);border-radius:0.6rem;padding:0.5rem 1rem;font-size:0.8rem;color:#fff;">
+      <i class="fas fa-code"></i> Skills: {{ student.skills }}
+    </div>
+    {% endif %}
+    {% if student.domain %}
+    <div style="background:rgba(255,255,255,0.12);border-radius:0.6rem;padding:0.5rem 1rem;font-size:0.8rem;color:#fff;">
+      <i class="fas fa-layer-group"></i> Domain: {{ student.domain }}
+    </div>
+    {% endif %}
+    {% if student.job_location %}
+    <div style="background:rgba(255,255,255,0.12);border-radius:0.6rem;padding:0.5rem 1rem;font-size:0.8rem;color:#fff;">
+      <i class="fas fa-map-marker-alt"></i> Target: {{ student.job_location }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Profile Prompt (if profile is incomplete) ─────────────────────── -->
+{% if profile_score < 67 %}
+<div class="profile-prompt">
+  <i class="fas fa-lightbulb"></i>
+  <div>
+    <strong style="color:var(--text-primary);">Tip: Get better matches!</strong>
+    <p style="font-size:0.83rem;color:var(--text-secondary);margin:0.2rem 0 0;">
+      Complete your <a href="{{ url_for('student.profile') }}">profile</a> — add skills, domain and preferred job location to unlock more personalized alumni recommendations.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Filter Bar ─────────────────────────────────────────────────────── -->
+<div class="glass-panel ai-filter-bar">
+  <form action="{{ url_for('student.ai_recommendations') }}" method="GET"
+        style="display:contents;">
+    <div>
+      <div class="filter-icon-label"><i class="fas fa-code"></i> Skill</div>
+      <input type="text" id="filter_skill" name="skill" class="form-input"
+             placeholder="e.g. Python"
+             value="{{ filter_skill }}">
+    </div>
+    <div>
+      <div class="filter-icon-label"><i class="fas fa-building"></i> Company</div>
+      <input type="text" id="filter_company" name="company" class="form-input"
+             placeholder="e.g. Google"
+             value="{{ filter_company }}">
+    </div>
+    <div>
+      <div class="filter-icon-label"><i class="fas fa-map-marker-alt"></i> Location</div>
+      <input type="text" id="filter_location" name="location" class="form-input"
+             placeholder="e.g. Bangalore"
+             value="{{ filter_location }}">
+    </div>
+    <div>
+      <div class="filter-icon-label"><i class="fas fa-briefcase"></i> Role / Domain</div>
+      <input type="text" id="filter_role" name="role" class="form-input"
+             placeholder="e.g. Engineer"
+             value="{{ filter_role }}">
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+      <button type="submit" class="btn btn-primary" style="flex-grow:1;justify-content:center;">
+        <i class="fas fa-filter"></i> Filter
+      </button>
+      <a href="{{ url_for('student.ai_recommendations') }}" class="btn btn-secondary" style="justify-content:center;" title="Clear filters">
+        <i class="fas fa-redo"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- ── Results Meta Row ───────────────────────────────────────────────── -->
+<div class="results-meta">
+  <span class="results-count-badge">
+    <i class="fas fa-star"></i> {{ rec_alumni|length }} Alumni Matched
+  </span>
+  <span class="sort-note">Sorted by match score — highest first</span>
+  {% if filter_skill or filter_company or filter_location or filter_role %}
+    <span style="font-size:0.8rem;color:var(--warning-color);font-weight:600;">
+      <i class="fas fa-filter"></i> Filters active
+    </span>
+  {% endif %}
+</div>
+
+<!-- ── Alumni Cards Grid ──────────────────────────────────────────────── -->
+{% if rec_alumni %}
+  <div class="ai-card-grid">
+    {% for item in rec_alumni %}
+      {% set alum = item.alumni %}
+      {% set score = item.score %}
+      {% set reason = item.reason %}
+
+      <div class="glass-panel ai-alumni-card">
+
+        <!-- Score Ribbon -->
+        <div class="score-ribbon {% if score >= 60 %}score-high{% elif score >= 30 %}score-medium{% else %}score-low{% endif %}">
+          {{ score }}
+          <small>pts</small>
+        </div>
+
+        <!-- Avatar + Name Row -->
+        <div class="card-avatar-row">
+          <img src="{{ url_for('static', filename='uploads/' + alum.profile_pic) }}"
+               alt="{{ alum.name }}" class="card-avatar">
+          <div>
+            <div class="card-name">{{ alum.name }}</div>
+            <div class="card-role">{{ alum.designation or 'Industry Professional' }}</div>
+            <div class="card-company">
+              <i class="fas fa-building" style="font-size:0.7rem;"></i>
+              {{ alum.company or 'Independent Expert' }}
+              &nbsp;&bull;&nbsp;
+              <i class="fas fa-graduation-cap" style="font-size:0.7rem;"></i>
+              Class of {{ alum.graduation_year }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Domain Badge -->
+        {% if alum.domain %}
+          <div>
+            <span class="badge badge-info" style="font-size:0.75rem;">
+              <i class="fas fa-layer-group"></i> {{ alum.domain }}
+            </span>
+          </div>
+        {% endif %}
+
+        <!-- Skills Chips -->
+        {% if alum.skills %}
+          <div class="card-skills">
+            {% for skill in alum.skills.split(',')[:5] %}
+              <span class="skill-chip">{{ skill.strip() }}</span>
+            {% endfor %}
+            {% if alum.skills.split(',')|length > 5 %}
+              <span class="skill-chip" style="opacity:0.65;">+{{ alum.skills.split(',')|length - 5 }} more</span>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <!-- Match Reason -->
+        <div class="reason-box">
+          <i class="fas fa-info-circle"></i>
+          <strong>Why matched:</strong> {{ reason }}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card-actions">
+          {% if alum.linkedin %}
+            <a href="{{ alum.linkedin }}" target="_blank" class="btn btn-secondary btn-sm" style="justify-content:center;flex:0 0 auto;width:auto;padding:0.45rem 0.75rem;" title="LinkedIn">
+              <i class="fab fa-linkedin"></i>
+            </a>
+          {% endif %}
+
+          {% set status = connections.get(alum.id) %}
+          {% if status == 'accepted' %}
+            <a href="{{ url_for('student.messages', chat_with=alum.id) }}" class="btn btn-success btn-sm" style="flex-grow:1;justify-content:center;">
+              <i class="fas fa-comment-dots"></i> Message Mentor
+            </a>
+          {% elif status == 'pending' %}
+            <button class="btn btn-secondary btn-sm" style="flex-grow:1;justify-content:center;opacity:0.6;cursor:not-allowed;" disabled>
+              <i class="fas fa-clock"></i> Request Pending
+            </button>
+          {% else %}
+            <form action="{{ url_for('student.connect', alumni_id=alum.id) }}" method="POST" style="flex-grow:1;">
+              <button type="submit" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">
+                <i class="fas fa-user-plus"></i> Connect &amp; Request Mentorship
+              </button>
+            </form>
+          {% endif %}
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="glass-panel ai-empty-state">
+    <i class="fas fa-robot"></i>
+    <h3>No Alumni Matches Found</h3>
+    <p style="max-width:420px;margin:0.5rem auto 1.5rem;">
+      {% if filter_skill or filter_company or filter_location or filter_role %}
+        No results match your current filters. Try clearing some filters or broadening your search.
+      {% else %}
+        Complete your profile with skills, domain, and preferred job location to start receiving personalized recommendations!
+      {% endif %}
+    </p>
+    {% if filter_skill or filter_company or filter_location or filter_role %}
+      <a href="{{ url_for('student.ai_recommendations') }}" class="btn btn-primary">
+        <i class="fas fa-redo"></i> Clear Filters
+      </a>
+    {% else %}
+      <a href="{{ url_for('student.profile') }}" class="btn btn-primary">
+        <i class="fas fa-user-edit"></i> Complete My Profile
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% endblock %}

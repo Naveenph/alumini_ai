@@ -61,6 +61,7 @@ class Student(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     skills = db.Column(db.String(255), nullable=True) # Comma-separated list of skills
     domain = db.Column(db.String(100), nullable=True) # Domain of interest
+    job_location = db.Column(db.String(100), nullable=True) # Preferred job location (e.g. "Bangalore", "Remote")
     graduation_year = db.Column(db.Integer, nullable=False)
     profile_pic = db.Column(db.String(255), default='default_avatar.png')
     is_approved = db.Column(db.Boolean, default=False)

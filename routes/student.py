@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from werkzeug.utils import secure_filename
 from models.base import db
-from models.models import Student, Alumni, JobPosting, Event, Webinar, EventRegistration, WebinarRegistration, MentorshipRequest, Notification
+from models.models import Student, Alumni, JobPosting, Event, Webinar, EventRegistration, WebinarRegistration, MentorshipRequest, Notification, AIRecommendation
 from routes.auth import student_required
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -14,57 +14,79 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Rule-Based AI Recommendations (Python-based simple logical conditions, no ML)
-def get_ai_recommendations(student):
+def get_ai_recommendations(student, limit=5, include_connected=False):
+    """Enhanced AI recommendation engine scoring alumni by domain, skills, location, and grad year."""
     recommended_alumni = []
     recommended_jobs = []
 
-    # Prepare student skills
+    # Prepare student signals
     student_skills = [s.lower().strip() for s in (student.skills or '').split(',') if s.strip()]
     student_domain = (student.domain or '').lower().strip()
+    student_location = (student.job_location or '').lower().strip()
 
     # 1. Recommend Mentors (Alumni)
-    # Rules: Match by domain (high weight), matching skills (medium weight), or close graduation year (low weight)
+    # Scoring rules:
+    #   A. Domain match         → +40 pts
+    #   B. Skill overlap        → +15 pts/skill (max 45)
+    #   C. Location match       → +25 pts (alumni company location ~= student preferred location)
+    #   D. Grad year proximity  → +15 pts (within 5 years)
     all_alumni = Alumni.query.filter_by(is_approved=True).all()
     alumni_scores = []
 
     for alum in all_alumni:
-        # Check if already connected or pending
-        existing_conn = MentorshipRequest.query.filter_by(student_id=student.id, alumni_id=alum.id).first()
-        if existing_conn:
-            continue # skip already connected or requested
+        # Optionally skip already connected/pending alumni
+        if not include_connected:
+            existing_conn = MentorshipRequest.query.filter_by(student_id=student.id, alumni_id=alum.id).first()
+            if existing_conn:
+                continue
 
         score = 0
         reasons = []
 
-        # Rule A: Domain match (add 40 points)
+        # Rule A: Domain match
         alum_domain = (alum.domain or '').lower().strip()
-        if student_domain and alum_domain == student_domain:
+        if student_domain and alum_domain and alum_domain == student_domain:
             score += 40
             reasons.append(f"Domain match ({alum.domain})")
 
-        # Rule B: Skill matches (add 15 points per matching skill, max 45)
+        # Rule B: Skill matches
         alum_skills = [s.lower().strip() for s in (alum.skills or '').split(',') if s.strip()]
-        matches = set(student_skills).intersection(set(alum_skills))
-        if matches:
-            points = len(matches) * 15
+        skill_matches = set(student_skills).intersection(set(alum_skills))
+        if skill_matches:
+            points = len(skill_matches) * 15
             score += min(points, 45)
-            reasons.append(f"Matching skills: {', '.join(list(matches)[:3])}")
+            reasons.append(f"Matching skills: {', '.join(list(skill_matches)[:3])}")
 
-        # Rule C: Grad Year Match (within 5 years - add 15 points)
+        # Rule C: Job location preference match (alumni's company location)
+        alum_company = (alum.company or '').lower().strip()
+        alum_designation = (alum.designation or '').lower().strip()
+        # We don't have alumni location in model, so match on company name keywords or designation
+        # Match student preferred location against alumni domain/company description
+        if student_location:
+            # Try partial match on company or designation fields
+            if (student_location in alum_company or 
+                student_location in alum_domain or
+                student_location in alum_designation):
+                score += 25
+                reasons.append(f"Location match ({student.job_location})")
+
+        # Rule D: Grad Year proximity (within 5 years)
         if abs(alum.graduation_year - student.graduation_year) <= 5:
             score += 15
             reasons.append("Recent graduate (near your year)")
 
-        # Include if score is positive
         if score > 0:
             alumni_scores.append((alum, score, ", ".join(reasons)))
 
     # Sort alumni by score descending
     alumni_scores.sort(key=lambda x: x[1], reverse=True)
-    recommended_alumni = [{"alumni": alum, "score": score, "reason": reason} for alum, score, reason in alumni_scores[:5]]
+    recommended_alumni = [
+        {"alumni": alum, "score": score, "reason": reason}
+        for alum, score, reason in alumni_scores[:limit]
+    ]
 
     # 2. Recommend Jobs
-    # Rules: Match requirements against student skills, or match location, or matching domain
+    # Rules: skill overlap, domain keyword, location preference
     all_jobs = JobPosting.query.order_by(JobPosting.created_at.desc()).all()
     job_scores = []
 
@@ -72,25 +94,33 @@ def get_ai_recommendations(student):
         score = 0
         reasons = []
 
-        # Rule A: Skills requirement matches student skills (add 20 points per match)
+        # Rule A: Skills requirement matches student skills
         job_reqs = [r.lower().strip() for r in (job.requirements or '').split(',') if r.strip()]
-        matches = set(student_skills).intersection(set(job_reqs))
-        if matches:
-            points = len(matches) * 20
+        req_matches = set(student_skills).intersection(set(job_reqs))
+        if req_matches:
+            points = len(req_matches) * 20
             score += points
-            reasons.append(f"Skills match: {', '.join(list(matches)[:3])}")
+            reasons.append(f"Skills match: {', '.join(list(req_matches)[:3])}")
 
-        # Rule B: Domain interest matches job title keyword (add 20 points)
+        # Rule B: Domain interest matches job title or description
         if student_domain and (student_domain in job.title.lower() or student_domain in job.description.lower()):
             score += 20
             reasons.append(f"Matches domain interest ({student.domain})")
+
+        # Rule C: Location preference matches job location
+        if student_location and (student_location in job.location.lower()):
+            score += 20
+            reasons.append(f"Job in preferred location ({job.location})")
 
         if score > 0:
             job_scores.append((job, score, ", ".join(reasons)))
 
     # Sort jobs by score descending
     job_scores.sort(key=lambda x: x[1], reverse=True)
-    recommended_jobs = [{"job": job, "score": score, "reason": reason} for job, score, reason in job_scores[:5]]
+    recommended_jobs = [
+        {"job": job, "score": score, "reason": reason}
+        for job, score, reason in job_scores[:limit]
+    ]
 
     return recommended_alumni, recommended_jobs
 
@@ -146,6 +176,7 @@ def profile():
         student.email = email
         student.skills = request.form.get('skills', '').strip()
         student.domain = request.form.get('domain', '').strip()
+        student.job_location = request.form.get('job_location', '').strip()
         student.graduation_year = int(request.form.get('graduation_year', student.graduation_year))
 
         # Handle file upload for profile pic
@@ -319,3 +350,72 @@ def messages():
         active_alumni = Alumni.query.get(active_chat_alumni_id)
 
     return render_template('student/messages.html', connections=connections, active_alumni=active_alumni)
+
+# ─────────────────────────────────────────────────────────────────────
+# AI Alumni Recommendations – Dedicated Page
+# ─────────────────────────────────────────────────────────────────────
+@student_bp.route('/ai-recommendations')
+@student_required
+def ai_recommendations():
+    student = Student.query.get(session['user_id'])
+
+    # Read optional client-side filters from query params
+    filter_skill    = request.args.get('skill', '').strip().lower()
+    filter_company  = request.args.get('company', '').strip().lower()
+    filter_location = request.args.get('location', '').strip().lower()
+    filter_role     = request.args.get('role', '').strip().lower()
+
+    # Get all recommendations (higher limit, include already-connected so page is always populated)
+    rec_alumni, _ = get_ai_recommendations(student, limit=50, include_connected=True)
+
+    # Apply additional filters
+    if filter_skill:
+        rec_alumni = [
+            r for r in rec_alumni
+            if filter_skill in (r['alumni'].skills or '').lower()
+        ]
+    if filter_company:
+        rec_alumni = [
+            r for r in rec_alumni
+            if filter_company in (r['alumni'].company or '').lower()
+        ]
+    if filter_location:
+        rec_alumni = [
+            r for r in rec_alumni
+            if filter_location in (r['alumni'].company or '').lower()
+               or filter_location in (r['alumni'].domain or '').lower()
+               or filter_location in (r['alumni'].designation or '').lower()
+        ]
+    if filter_role:
+        rec_alumni = [
+            r for r in rec_alumni
+            if filter_role in (r['alumni'].designation or '').lower()
+               or filter_role in (r['alumni'].domain or '').lower()
+        ]
+
+    # Connection status map for button states
+    student_id = session['user_id']
+    connections = {
+        c.alumni_id: c.status
+        for c in MentorshipRequest.query.filter_by(student_id=student_id).all()
+    }
+
+    # Profile completeness hint (0–100)
+    filled = sum([
+        bool(student.skills),
+        bool(student.domain),
+        bool(student.job_location),
+    ])
+    profile_score = int((filled / 3) * 100)
+
+    return render_template(
+        'student/ai_recommendations.html',
+        student=student,
+        rec_alumni=rec_alumni,
+        connections=connections,
+        profile_score=profile_score,
+        filter_skill=filter_skill,
+        filter_company=filter_company,
+        filter_location=filter_location,
+        filter_role=filter_role,
+    )

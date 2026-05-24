@@ -63,6 +63,21 @@
             <input type="text" id="skills" name="skills" class="form-input" value="{{ student.skills or '' }}" placeholder="e.g. Python, SQL, C++, HTML, Javascript">
         </div>
 
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label for="job_location" class="form-label">
+                    <i class="fas fa-map-marker-alt" style="color: var(--accent-color);"></i>
+                    Preferred Job Location
+                </label>
+                <input type="text" id="job_location" name="job_location" class="form-input"
+                    value="{{ student.job_location or '' }}"
+                    placeholder="e.g. Bangalore, Remote, Hyderabad">
+                <p style="font-size:0.73rem; color:var(--text-muted); margin-top:0.3rem;">
+                    <i class="fas fa-robot"></i> Used by AI to recommend alumni in your target city.
+                </p>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
             <i class="fas fa-save"></i> Save Changes
         </button>

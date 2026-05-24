@@ -2,90 +2,462 @@
 
 {% block title %}Events & Webinars - Student Dashboard{% endblock %}
 
+{% block head %}
+<style>
+  /* ── Tab Navigation ──────────────────────────────────────────────── */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 2rem;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 0.45rem;
+  }
+  .tab-btn.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+  }
+  .tab-btn:hover { color: var(--accent-color); }
+  .tab-count {
+    background: var(--accent-color);
+    color: #fff;
+    border-radius: 99px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.1rem 0.45rem;
+    line-height: 1.4;
+  }
+  .tab-count.registered { background: hsl(140,70%,42%); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Event Card ──────────────────────────────────────────────────── */
+  .event-card {
+    border-radius: 1.1rem;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .event-card:hover { transform: translateY(-3px); box-shadow: 0 16px 35px rgba(0,0,0,0.15); }
+
+  .event-card-accent {
+    height: 5px;
+  }
+  .accent-campus  { background: linear-gradient(90deg, hsl(245,85%,62%), hsl(295,75%,60%)); }
+  .accent-webinar { background: linear-gradient(90deg, hsl(200,85%,55%), hsl(230,80%,60%)); }
+  .accent-reg     { background: linear-gradient(90deg, hsl(140,70%,48%), hsl(165,75%,45%)); }
+
+  .event-card-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex-grow: 1;
+  }
+
+  .event-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    align-items: center;
+  }
+  .event-meta-row span { display: flex; align-items: center; gap: 0.35rem; }
+
+  /* Category badge */
+  .cat-badge {
+    border-radius: 99px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .cat-campus   { background: rgba(124,58,237,0.12); color: hsl(245,80%,62%); }
+  .cat-webinar  { background: rgba(37,99,235,0.12);  color: hsl(220,80%,58%); }
+  .cat-workshop { background: rgba(245,158,11,0.12); color: hsl(38,95%,45%);  }
+  .cat-seminar  { background: rgba(16,185,129,0.12); color: hsl(160,70%,42%); }
+
+  /* Countdown Timer */
+  .countdown-wrap {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .cd-unit {
+    background: var(--bg-secondary, rgba(124,58,237,0.08));
+    border: 1px solid var(--border-color);
+    border-radius: 0.6rem;
+    padding: 0.4rem 0.65rem;
+    text-align: center;
+    min-width: 52px;
+  }
+  .cd-val {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--accent-color);
+    line-height: 1;
+    display: block;
+  }
+  .cd-lbl {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .cd-past {
+    font-size: 0.82rem;
+    color: hsl(0,60%,55%);
+    font-weight: 700;
+    padding: 0.4rem 0.65rem;
+    background: rgba(239,68,68,0.08);
+    border-radius: 0.6rem;
+  }
+
+  /* Action row */
+  .event-action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.9rem;
+  }
+
+  /* Registered badge full pill */
+  .reg-pill {
+    background: linear-gradient(135deg, hsl(140,70%,45%), hsl(165,75%,42%));
+    color: #fff;
+    padding: 0.45rem 1.1rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+
+  /* Section header inside tab */
+  .section-label {
+    display: flex; align-items: center; gap: 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 1.75rem 0 0.85rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  @media (max-width: 640px) {
+    .event-card-body { padding: 1rem 1.1rem 1.25rem; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
-    <h1 class="page-title">Events & Webinars Hub</h1>
-    <p class="page-subtitle">Register for official college conferences and technical workshops hosted by alumni.</p>
+    <h1 class="page-title">Events &amp; Webinars Hub</h1>
+    <p class="page-subtitle">Register for official campus events and alumni-hosted webinars. Live countdowns keep you on track.</p>
 </div>
 
-<div class="dashboard-grid">
-    <!-- Left Column: Admin Events -->
-    <div class="glass-panel panel-card" style="margin-bottom: 0;">
-        <div class="panel-header">
-            <h3 class="panel-title"><i class="fas fa-university"></i> Official Campus Events</h3>
-            <span class="badge badge-primary">{{ events|length }} Upcoming</span>
-        </div>
-
-        {% if events %}
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                {% for event in events %}
-                    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
-                        <h4 style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);">{{ event.title }}</h4>
-                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0.3rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <span><i class="far fa-calendar-alt"></i> {{ event.event_date.strftime("%d %b %Y, %I:%M %p") }}</span>
-                            <span><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
-                        </p>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0.75rem 0;">
-                            {{ event.description }}
-                        </p>
-                        
-                        <div style="display: flex; justify-content: flex-end;">
-                            {% if event.id in my_events %}
-                                <span class="badge badge-success" style="padding: 0.5rem 1rem;"><i class="fas fa-check-circle"></i> Registered</span>
-                            {% else %}
-                                <form action="{{ url_for('student.register_event', event_id=event.id) }}" method="POST">
-                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Register for Event</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No official campus events have been scheduled.</p>
-        {% endif %}
-    </div>
-
-    <!-- Right Column: Alumni Webinars -->
-    <div class="glass-panel panel-card" style="margin-bottom: 0;">
-        <div class="panel-header">
-            <h3 class="panel-title"><i class="fas fa-video"></i> Alumni webinars</h3>
-            <span class="badge badge-primary">{{ webinars|length }} Upcoming</span>
-        </div>
-
-        {% if webinars %}
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                {% for web in webinars %}
-                    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
-                        <h4 style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);">{{ web.title }}</h4>
-                        <h5 style="font-weight: 600; font-size: 0.88rem; color: var(--accent-color); margin-top: 0.15rem;">
-                            Speaker: {{ web.speaker.name }} ({{ web.speaker.company or 'Expert' }})
-                        </h5>
-                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0.4rem 0; display: flex; flex-direction: column; gap: 0.25rem;">
-                            <span><i class="far fa-calendar-alt"></i> {{ web.webinar_date.strftime("%d %b %Y, %I:%M %p") }}</span>
-                            {% if web.id in my_webinars %}
-                                <span><i class="fas fa-link"></i> Join Link: <a href="{{ web.link }}" target="_blank" style="color: var(--accent-color); text-decoration: underline; font-weight: 600;">Click to Join meeting</a></span>
-                            {% endif %}
-                        </p>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0.75rem 0;">
-                            {{ web.description }}
-                        </p>
-                        
-                        <div style="display: flex; justify-content: flex-end;">
-                            {% if web.id in my_webinars %}
-                                <span class="badge badge-success" style="padding: 0.5rem 1rem;"><i class="fas fa-check-circle"></i> Registered</span>
-                            {% else %}
-                                <form action="{{ url_for('student.register_webinar', webinar_id=web.id) }}" method="POST">
-                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Register for Webinar</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p style="color: var(--text-secondary); text-align: center; padding: 4rem;">No alumni webinars have been scheduled.</p>
-        {% endif %}
-    </div>
+<!-- ── Tab Navigation ─────────────────────────────────────────────────── -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('campus', this)" id="tab-campus">
+    <i class="fas fa-university"></i> Campus Events
+    <span class="tab-count">{{ events|length }}</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('webinars', this)" id="tab-webinars">
+    <i class="fas fa-video"></i> Alumni Webinars
+    <span class="tab-count">{{ webinars|length }}</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('mine', this)" id="tab-mine">
+    <i class="fas fa-check-circle"></i> My Registrations
+    <span class="tab-count registered">{{ (my_events|length) + (my_webinars|length) }}</span>
+  </button>
 </div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 1 – Campus Events                                               -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-campus">
+  {% if events %}
+    {% for event in events %}
+      {% set is_registered = event.id in my_events %}
+      <div class="glass-panel event-card">
+        <div class="event-card-accent {% if is_registered %}accent-reg{% else %}accent-campus{% endif %}"></div>
+        <div class="event-card-body">
+
+          <!-- Title row -->
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+            <h3 style="font-weight:800;font-size:1.15rem;color:var(--text-primary);flex:1;">{{ event.title }}</h3>
+            <span class="cat-badge cat-campus">
+              <i class="fas fa-university"></i> Campus Event
+            </span>
+          </div>
+
+          <!-- Meta row -->
+          <div class="event-meta-row">
+            <span><i class="far fa-calendar-alt"></i> {{ event.event_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+            <span><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
+          </div>
+
+          <!-- Description -->
+          <p style="color:var(--text-secondary);font-size:0.87rem;line-height:1.6;">{{ event.description }}</p>
+
+          <!-- Countdown Timer -->
+          <div class="countdown-wrap" id="cd-event-{{ event.id }}-wrap">
+            <div class="cd-unit"><span class="cd-val" id="cd-event-{{ event.id }}-d">--</span><span class="cd-lbl">Days</span></div>
+            <div class="cd-unit"><span class="cd-val" id="cd-event-{{ event.id }}-h">--</span><span class="cd-lbl">Hrs</span></div>
+            <div class="cd-unit"><span class="cd-val" id="cd-event-{{ event.id }}-m">--</span><span class="cd-lbl">Min</span></div>
+            <div class="cd-unit"><span class="cd-val" id="cd-event-{{ event.id }}-s">--</span><span class="cd-lbl">Sec</span></div>
+          </div>
+
+          <!-- Action Row -->
+          <div class="event-action-row">
+            <span style="font-size:0.78rem;color:var(--text-muted);">
+              <i class="fas fa-info-circle"></i> Free registration
+            </span>
+            {% if is_registered %}
+              <span class="reg-pill"><i class="fas fa-check-circle"></i> Registered</span>
+            {% else %}
+              <form action="{{ url_for('student.register_event', event_id=event.id) }}" method="POST">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="fas fa-calendar-plus"></i> Register for Event
+                </button>
+              </form>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      <!-- JS data tag for countdown -->
+      <script>initCountdown("cd-event-{{ event.id }}", "{{ event.event_date.strftime('%Y-%m-%dT%H:%M:%S') }}");</script>
+    {% endfor %}
+
+  {% else %}
+    <div class="glass-panel" style="text-align:center;padding:5rem 2rem;color:var(--text-secondary);">
+      <i class="fas fa-calendar-times" style="font-size:3.5rem;color:var(--text-muted);display:block;margin-bottom:1.25rem;"></i>
+      <h3 style="font-weight:700;color:var(--text-primary);">No Campus Events Scheduled</h3>
+      <p style="margin-top:0.5rem;">Check back soon — the administration will post upcoming events here.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 2 – Alumni Webinars                                             -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-webinars">
+  {% if webinars %}
+    {% for web in webinars %}
+      {% set is_registered = web.id in my_webinars %}
+      <div class="glass-panel event-card">
+        <div class="event-card-accent {% if is_registered %}accent-reg{% else %}accent-webinar{% endif %}"></div>
+        <div class="event-card-body">
+
+          <!-- Title row -->
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+            <h3 style="font-weight:800;font-size:1.15rem;color:var(--text-primary);flex:1;">{{ web.title }}</h3>
+            <span class="cat-badge cat-webinar">
+              <i class="fas fa-video"></i> Webinar
+            </span>
+          </div>
+
+          <!-- Speaker -->
+          <div style="font-size:0.85rem;font-weight:700;color:var(--accent-color);">
+            <i class="fas fa-microphone-alt"></i>
+            Speaker: {{ web.speaker.name }}
+            {% if web.speaker.company %}
+              <span style="font-weight:400;color:var(--text-secondary);">— {{ web.speaker.company }}</span>
+            {% endif %}
+          </div>
+
+          <!-- Meta row -->
+          <div class="event-meta-row">
+            <span><i class="far fa-calendar-alt"></i> {{ web.webinar_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+            {% if is_registered %}
+              <span>
+                <i class="fas fa-link"></i>
+                <a href="{{ web.link }}" target="_blank" style="color:var(--accent-color);font-weight:700;">Join Webinar ↗</a>
+              </span>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          <p style="color:var(--text-secondary);font-size:0.87rem;line-height:1.6;">{{ web.description }}</p>
+
+          <!-- Countdown Timer -->
+          <div class="countdown-wrap" id="cd-webinar-{{ web.id }}-wrap">
+            <div class="cd-unit"><span class="cd-val" id="cd-webinar-{{ web.id }}-d">--</span><span class="cd-lbl">Days</span></div>
+            <div class="cd-unit"><span class="cd-val" id="cd-webinar-{{ web.id }}-h">--</span><span class="cd-lbl">Hrs</span></div>
+            <div class="cd-unit"><span class="cd-val" id="cd-webinar-{{ web.id }}-m">--</span><span class="cd-lbl">Min</span></div>
+            <div class="cd-unit"><span class="cd-val" id="cd-webinar-{{ web.id }}-s">--</span><span class="cd-lbl">Sec</span></div>
+          </div>
+
+          <!-- Action Row -->
+          <div class="event-action-row">
+            <span style="font-size:0.78rem;color:var(--text-muted);">
+              <i class="fas fa-info-circle"></i> Online event
+            </span>
+            {% if is_registered %}
+              <span class="reg-pill"><i class="fas fa-check-circle"></i> Registered</span>
+            {% else %}
+              <form action="{{ url_for('student.register_webinar', webinar_id=web.id) }}" method="POST">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="fas fa-calendar-plus"></i> Register for Webinar
+                </button>
+              </form>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      <script>initCountdown("cd-webinar-{{ web.id }}", "{{ web.webinar_date.strftime('%Y-%m-%dT%H:%M:%S') }}");</script>
+    {% endfor %}
+
+  {% else %}
+    <div class="glass-panel" style="text-align:center;padding:5rem 2rem;color:var(--text-secondary);">
+      <i class="fas fa-video-slash" style="font-size:3.5rem;color:var(--text-muted);display:block;margin-bottom:1.25rem;"></i>
+      <h3 style="font-weight:700;color:var(--text-primary);">No Webinars Scheduled</h3>
+      <p style="margin-top:0.5rem;">Alumni webinars will appear here once posted. Stay tuned!</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 3 – My Registrations                                            -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-mine">
+  {% set reg_events   = events  | selectattr('id', 'in', my_events)   | list %}
+  {% set reg_webinars = webinars | selectattr('id', 'in', my_webinars) | list %}
+
+  {% if reg_events or reg_webinars %}
+
+    {% if reg_events %}
+      <div class="section-label"><i class="fas fa-university"></i> Campus Events</div>
+      {% for event in reg_events %}
+        <div class="glass-panel event-card">
+          <div class="event-card-accent accent-reg"></div>
+          <div class="event-card-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+              <h3 style="font-weight:800;font-size:1.1rem;color:var(--text-primary);flex:1;">{{ event.title }}</h3>
+              <span class="reg-pill" style="font-size:0.75rem;padding:0.25rem 0.8rem;"><i class="fas fa-check-circle"></i> Registered</span>
+            </div>
+            <div class="event-meta-row">
+              <span><i class="far fa-calendar-alt"></i> {{ event.event_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+              <span><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">{{ event.description }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if reg_webinars %}
+      <div class="section-label"><i class="fas fa-video"></i> Webinars</div>
+      {% for web in reg_webinars %}
+        <div class="glass-panel event-card">
+          <div class="event-card-accent accent-reg"></div>
+          <div class="event-card-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+              <h3 style="font-weight:800;font-size:1.1rem;color:var(--text-primary);flex:1;">{{ web.title }}</h3>
+              <span class="reg-pill" style="font-size:0.75rem;padding:0.25rem 0.8rem;"><i class="fas fa-check-circle"></i> Registered</span>
+            </div>
+            <div class="event-meta-row">
+              <span><i class="far fa-calendar-alt"></i> {{ web.webinar_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+              <span>
+                <i class="fas fa-link"></i>
+                <a href="{{ web.link }}" target="_blank" style="color:var(--accent-color);font-weight:700;">Join Webinar ↗</a>
+              </span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">{{ web.description }}</p>
+            <div style="font-size:0.8rem;color:var(--accent-color);font-weight:600;">
+              <i class="fas fa-microphone-alt"></i> Speaker: {{ web.speaker.name }}{% if web.speaker.company %} — {{ web.speaker.company }}{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+  {% else %}
+    <div class="glass-panel" style="text-align:center;padding:5rem 2rem;color:var(--text-secondary);">
+      <i class="fas fa-calendar-check" style="font-size:3.5rem;color:var(--text-muted);display:block;margin-bottom:1.25rem;"></i>
+      <h3 style="font-weight:700;color:var(--text-primary);">No Registrations Yet</h3>
+      <p style="margin-top:0.5rem;">Head over to the <strong>Campus Events</strong> or <strong>Alumni Webinars</strong> tabs to register!</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Tab Switching ──────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Countdown Timer ────────────────────────────────────────────────────
+function initCountdown(prefix, isoDateStr) {
+  // Convert the ISO string to a local Date
+  const target = new Date(isoDateStr);
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    const now  = new Date();
+    const diff = target - now;
+
+    const wrapEl = document.getElementById(prefix + '-wrap');
+    if (!wrapEl) return;
+
+    if (diff <= 0) {
+      wrapEl.innerHTML = '<div class="cd-past"><i class="fas fa-history"></i> Event has passed</div>';
+      return;
+    }
+
+    const days  = Math.floor(diff / 86400000);
+    const hrs   = Math.floor((diff % 86400000) / 3600000);
+    const mins  = Math.floor((diff % 3600000)  / 60000);
+    const secs  = Math.floor((diff % 60000)    / 1000);
+
+    const d = document.getElementById(prefix + '-d');
+    const h = document.getElementById(prefix + '-h');
+    const m = document.getElementById(prefix + '-m');
+    const s = document.getElementById(prefix + '-s');
+    if (d) d.textContent = pad(days);
+    if (h) h.textContent = pad(hrs);
+    if (m) m.textContent = pad(mins);
+    if (s) s.textContent = pad(secs);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+}
+</script>
 {% endblock %}

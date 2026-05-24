@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from werkzeug.utils import secure_filename
 from models.base import db
-from models.models import Student, Alumni, JobPosting, Event, Webinar, EventRegistration, WebinarRegistration, MentorshipRequest, Notification, AIRecommendation
+from models.models import Student, Alumni, JobPosting, Event, Webinar, EventRegistration, WebinarRegistration, MentorshipRequest, Notification, AIRecommendation, FlashcardImage
 from routes.auth import student_required
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -146,6 +146,9 @@ def dashboard():
     for notif in notifications:
         notif.is_read = True
     db.session.commit()
+    
+    # Flashcards
+    flashcards = FlashcardImage.query.order_by(FlashcardImage.created_at.desc()).all()
 
     return render_template(
         'student/dashboard.html',
@@ -155,7 +158,8 @@ def dashboard():
         connections_count=connections_count,
         rec_alumni=rec_alumni,
         rec_jobs=rec_jobs,
-        notifications=notifications
+        notifications=notifications,
+        flashcards=flashcards
     )
 
 # Student Profile Edit

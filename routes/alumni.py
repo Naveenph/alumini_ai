@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from werkzeug.utils import secure_filename
 from models.base import db
-from models.models import Alumni, Student, JobPosting, Webinar, MentorshipRequest, WebinarRegistration, Notification
+from models.models import Alumni, Student, JobPosting, Webinar, MentorshipRequest, WebinarRegistration, Notification, FlashcardImage
 from routes.auth import alumni_required
 
 alumni_bp = Blueprint('alumni', __name__, url_prefix='/alumni')
@@ -34,6 +34,9 @@ def dashboard():
     for ann in announcements:
         ann.is_read = True
     db.session.commit()
+    
+    # Flashcards
+    flashcards = FlashcardImage.query.order_by(FlashcardImage.created_at.desc()).all()
 
     return render_template(
         'alumni/dashboard.html',
@@ -42,7 +45,8 @@ def dashboard():
         total_webinars=total_webinars,
         total_connections=total_connections,
         pending_requests=pending_requests,
-        announcements=announcements
+        announcements=announcements,
+        flashcards=flashcards
     )
 
 # Connection Request Moderation (Approve/Reject Student Connects)

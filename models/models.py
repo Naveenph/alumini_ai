@@ -38,6 +38,9 @@ class Alumni(db.Model):
     linkedin = db.Column(db.String(255), nullable=True)
     profile_pic = db.Column(db.String(255), default='default_avatar.png')
     is_approved = db.Column(db.Boolean, default=False)
+    is_email_verified = db.Column(db.Boolean, default=False)
+    email_verification_token = db.Column(db.String(100), nullable=True)
+    email_verification_otp = db.Column(db.String(6), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -65,6 +68,9 @@ class Student(db.Model):
     graduation_year = db.Column(db.Integer, nullable=False)
     profile_pic = db.Column(db.String(255), default='default_avatar.png')
     is_approved = db.Column(db.Boolean, default=False)
+    is_email_verified = db.Column(db.Boolean, default=False)
+    email_verification_token = db.Column(db.String(100), nullable=True)
+    email_verification_otp = db.Column(db.String(6), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -198,4 +204,12 @@ class AIRecommendation(db.Model):
     recommended_item_id = db.Column(db.Integer, nullable=False) # ID of the alumni or job posting
     score = db.Column(db.Integer, nullable=False) # Recommendation match percentage e.g., 85
     reason = db.Column(db.String(255), nullable=False) # Reasoning string
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# 14. Flashcard Images (Uploaded by Admin)
+class FlashcardImage(db.Model):
+    __tablename__ = 'flashcard_images'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    image_filename = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

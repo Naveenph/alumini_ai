@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Flashcards - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Manage Flashcards</h1>
+    <p class="page-subtitle">Upload and organize images that appear on the student and alumni dashboards.</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Upload New Flashcard Form -->
+    <div class="glass-panel panel-card">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-upload" style="color: var(--accent-color);"></i> Upload New Image</h3>
+        </div>
+        <form action="{{ url_for('admin.manage_flashcards') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="flashcard_image" class="form-label">Select Image File (png, jpg, jpeg, gif)</label>
+                <input type="file" name="flashcard_image" id="flashcard_image" class="form-input" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Upload Image
+            </button>
+        </form>
+    </div>
+
+    <!-- Existing Flashcards List -->
+    <div class="glass-panel panel-card" style="grid-column: span 1;">
+        <div class="panel-header">
+            <h3 class="panel-title"><i class="fas fa-images" style="color: var(--info-color);"></i> Active Flashcards</h3>
+        </div>
+        {% if flashcards %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                {% for card in flashcards %}
+                    <div class="glass-panel" style="padding: 0.5rem; text-align: center;">
+                        <img src="{{ url_for('static', filename='uploads/' + card.image_filename) }}" alt="Flashcard" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            Uploaded: {{ card.created_at.strftime("%d %b, %Y") }}
+                        </div>
+                        <form action="{{ url_for('admin.delete_flashcard', flashcard_id=card.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this image?');">
+                            <button type="submit" class="btn btn-danger btn-sm" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                <i class="far fa-images" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                <p>No flashcard images found. Upload one to get started!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

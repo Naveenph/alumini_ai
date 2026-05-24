@@ -31,7 +31,7 @@
             </div>
             <div class="form-group">
                 <label for="student_reg_email" class="form-label">Email Address *</label>
-                <input type="email" id="student_reg_email" name="email" class="form-input" placeholder="e.g. john@student.edu" required>
+                <input type="email" id="student_reg_email" name="email" class="form-input" placeholder="e.g. john@college.edu" pattern=".*@college\.edu$" title="Please use your @college.edu email address" required>
             </div>
             <div class="form-group">
                 <label for="student_reg_password" class="form-label">Password *</label>
@@ -72,7 +72,7 @@
             </div>
             <div class="form-group">
                 <label for="alumni_reg_email" class="form-label">Professional Email *</label>
-                <input type="email" id="alumni_reg_email" name="email" class="form-input" placeholder="e.g. jane@company.com" required>
+                <input type="email" id="alumni_reg_email" name="email" class="form-input" placeholder="e.g. jane@college.edu" pattern=".*@college\.edu$" title="Please use your @college.edu email address" required>
             </div>
             <div class="form-group">
                 <label for="alumni_reg_password" class="form-label">Password *</label>
@@ -109,10 +109,6 @@
             <div class="form-group">
                 <label for="alumni_skills" class="form-label">Key Skills (Comma Separated)</label>
                 <input type="text" id="alumni_skills" name="skills" class="form-input" placeholder="e.g. Java, AWS, Kubernetes">
-            </div>
-            <div class="form-group">
-                <label for="alumni_linkedin" class="form-label">LinkedIn Profile URL</label>
-                <input type="url" id="alumni_linkedin" name="linkedin" class="form-input" placeholder="https://linkedin.com/in/username">
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
                 <i class="fas fa-user-plus"></i> Submit Alumni Registration

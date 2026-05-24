@@ -62,6 +62,11 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ url_for('admin.manage_flashcards') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_flashcards' %}active{% endif %}">
+                            <i class="fas fa-images"></i> Manage Flashcards
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link {% if request.endpoint == 'admin.manage_jobs' %}active{% endif %}">
                             <i class="fas fa-briefcase"></i> Manage Jobs
                         </a>

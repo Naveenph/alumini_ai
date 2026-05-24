@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from dotenv import load_dotenv
-from models.base import db
+from models.base import db, mail
 from models.models import Admin, Alumni, Student, ActivityLog
 from database.connection import get_database_uri
 
@@ -19,6 +19,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy
 db.init_app(app)
+
+# Mail Configuration
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() in ['true', '1', 't']
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False').lower() in ['true', '1', 't']
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+
+# Initialize Mail
+mail.init_app(app)
 
 # Register Blueprints
 from routes.auth import auth_bp

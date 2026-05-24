@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from werkzeug.utils import secure_filename
 from models.base import db
-from models.models import Admin, Alumni, Student, Event, Webinar, JobPosting, ActivityLog, Notification, EventRegistration, WebinarRegistration
+from models.models import Admin, Alumni, Student, Event, Webinar, JobPosting, ActivityLog, Notification, EventRegistration, WebinarRegistration, FlashcardImage
 from routes.auth import admin_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -364,3 +364,55 @@ def profile():
         return redirect(url_for('admin.profile'))
 
     return render_template('admin/profile.html', admin=admin)
+
+# Manage Flashcards
+@admin_bp.route('/flashcards', methods=['GET', 'POST'])
+@admin_required
+def manage_flashcards():
+    if request.method == 'POST':
+        file = request.files.get('flashcard_image')
+        if file and file.filename != '' and allowed_file(file.filename):
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            filename = secure_filename(file.filename)
+            # Add a prefix to ensure uniqueness or just keep secure filename
+            # Since admin uploads it, a timestamp prefix is good
+            import time
+            filename = f"flashcard_{int(time.time())}_{filename}"
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            
+            new_flashcard = FlashcardImage(image_filename=filename)
+            db.session.add(new_flashcard)
+            
+            log = ActivityLog(action="Uploaded Flashcard", details="Admin uploaded a new flashcard image.")
+            db.session.add(log)
+            db.session.commit()
+            
+            flash("Flashcard image uploaded successfully!", "success")
+        else:
+            flash("Invalid file or file type not allowed.", "danger")
+        return redirect(url_for('admin.manage_flashcards'))
+
+    flashcards = FlashcardImage.query.order_by(FlashcardImage.created_at.desc()).all()
+    return render_template('admin/flashcards.html', flashcards=flashcards)
+
+@admin_bp.route('/flashcards/delete/<int:flashcard_id>', methods=['POST'])
+@admin_required
+def delete_flashcard(flashcard_id):
+    flashcard = FlashcardImage.query.get_or_404(flashcard_id)
+    
+    # Remove file from filesystem
+    filepath = os.path.join(UPLOAD_FOLDER, flashcard.image_filename)
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+        except OSError:
+            pass # File might be already gone
+
+    db.session.delete(flashcard)
+    
+    log = ActivityLog(action="Deleted Flashcard", details="Admin deleted a flashcard image.")
+    db.session.add(log)
+    db.session.commit()
+    
+    flash("Flashcard image removed successfully.", "success")
+    return redirect(url_for('admin.manage_flashcards'))

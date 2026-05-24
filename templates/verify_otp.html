@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Alumni Network System - Verify Email{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="glass-panel auth-card">
+        <div class="auth-header">
+            <h2 class="auth-title">Verify Your Email</h2>
+            <p class="auth-subtitle">Enter the 6-digit OTP sent to your email.</p>
+        </div>
+
+        <form action="{{ url_for('auth.verify_otp_view') }}" method="POST" class="auth-form active">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" value="{{ email }}" readonly required>
+            </div>
+            
+            <input type="hidden" name="role" value="{{ role }}">
+
+            <div class="form-group">
+                <label for="otp" class="form-label">6-Digit OTP</label>
+                <input type="text" id="otp" name="otp" class="form-input" placeholder="e.g. 123456" required pattern="\d{6}" maxlength="6">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                <i class="fas fa-check-circle"></i> Verify OTP
+            </button>
+        </form>
+
+        <!-- Helper Actions -->
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+            <p>Already verified? <a href="{{ url_for('auth.login_view') }}" class="accent-text" style="font-weight: 700; color: var(--accent-color);">Log In Here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if console_otp %}
+<script>
+    console.log("=========================================");
+    console.log("🔑 DEVELOPER MODE: Your OTP is: {{ console_otp }}");
+    console.log("=========================================");
+</script>
+{% endif %}
+{% endblock %}

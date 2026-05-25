@@ -41,4 +41,16 @@
         </button>
     </form>
 </div>
+
+<script>
+    document.getElementById('profile_pic').addEventListener('change', function(event) {
+        if (event.target.files && event.target.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('img[alt="Profile Avatar"]').src = e.target.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    });
+</script>
 {% endblock %}

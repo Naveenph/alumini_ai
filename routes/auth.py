@@ -96,13 +96,13 @@ def login_admin():
     
     admin = Admin.query.filter_by(email=email).first()
     if admin and admin.check_password(password):
-        session.clear()
-        session['user_id'] = admin.id
-        session['role'] = 'admin'
-        session['name'] = admin.name
-        session['profile_pic'] = admin.profile_pic
-        flash(f"Welcome back, Admin {admin.name}!", "success")
-        return redirect(url_for('admin.dashboard'))
+        # Generate OTP
+        otp = str(random.randint(100000, 999999))
+        admin.email_verification_otp = otp
+        db.session.commit()
+        send_verification_email(admin.email, admin.name, "admin-login", otp)
+        flash("Please enter the OTP sent to your email to continue.", "info")
+        return redirect(url_for('auth.verify_otp_view', email=admin.email, role='admin'))
     
     flash("Invalid admin email or password.", "danger")
     return redirect(url_for('auth.login_view', role='admin'))
@@ -343,18 +343,31 @@ def verify_otp_view():
             return redirect(url_for('auth.verify_otp_view', email=email, role=role))
 
         user = None
-        if role == 'alumni':
+        if role == 'admin':
+            user = Admin.query.filter_by(email=email).first()
+        elif role == 'alumni':
             user = Alumni.query.filter_by(email=email).first()
         elif role == 'student':
             user = Student.query.filter_by(email=email).first()
 
         if user and user.email_verification_otp == otp:
-            user.is_email_verified = True
-            user.email_verification_token = None
-            user.email_verification_otp = None
-            db.session.commit()
-            flash("Email verified successfully! You can now log in.", "success")
-            return redirect(url_for('auth.login_view'))
+            if role == 'admin':
+                user.email_verification_otp = None
+                db.session.commit()
+                session.clear()
+                session['user_id'] = user.id
+                session['role'] = 'admin'
+                session['name'] = user.name
+                session['profile_pic'] = user.profile_pic
+                flash(f"Welcome back, Admin {user.name}!", "success")
+                return redirect(url_for('admin.dashboard'))
+            else:
+                user.is_email_verified = True
+                user.email_verification_token = None
+                user.email_verification_otp = None
+                db.session.commit()
+                flash("Email verified successfully! You can now log in.", "success")
+                return redirect(url_for('auth.login_view'))
         else:
             flash("Invalid OTP.", "danger")
             return redirect(url_for('auth.verify_otp_view', email=email, role=role))
@@ -364,7 +377,13 @@ def verify_otp_view():
     
     console_otp = ""
     if email and role:
-        user = Alumni.query.filter_by(email=email).first() if role == 'alumni' else Student.query.filter_by(email=email).first()
+        if role == 'admin':
+            user = Admin.query.filter_by(email=email).first()
+        elif role == 'alumni':
+            user = Alumni.query.filter_by(email=email).first()
+        else:
+            user = Student.query.filter_by(email=email).first()
+            
         if user and user.email_verification_otp:
             console_otp = user.email_verification_otp
             

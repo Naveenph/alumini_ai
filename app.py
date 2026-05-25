@@ -105,7 +105,23 @@ with app.app_context():
 # 4. Public Core Page Handlers
 @app.route('/')
 def home():
-    return render_template('index.html')
+    from models.models import Alumni, Student, Webinar, JobPosting, FlashcardImage
+    
+    # Real-time stats
+    alumni_count = Alumni.query.filter_by(is_approved=True).count()
+    student_count = Student.query.filter_by(is_approved=True).count()
+    webinar_count = Webinar.query.count()
+    job_count = JobPosting.query.count()
+    
+    # Flashcards
+    flashcards = FlashcardImage.query.order_by(FlashcardImage.created_at.desc()).all()
+    
+    return render_template('index.html', 
+                           alumni_count=alumni_count, 
+                           student_count=student_count,
+                           webinar_count=webinar_count,
+                           job_count=job_count,
+                           flashcards=flashcards)
 
 @app.route('/about')
 def about():

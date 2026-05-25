@@ -18,19 +18,19 @@
         <!-- Metric Counter Stats -->
         <div class="stats-bar">
             <div class="stat-item-public">
-                <div class="stat-number-public">500+</div>
+                <div class="stat-number-public">{{ alumni_count }}</div>
                 <div class="stat-label-public">Alumni Mentors</div>
             </div>
             <div class="stat-item-public">
-                <div class="stat-number-public">1,200+</div>
+                <div class="stat-number-public">{{ student_count }}</div>
                 <div class="stat-label-public">Active Students</div>
             </div>
             <div class="stat-item-public">
-                <div class="stat-number-public">80+</div>
+                <div class="stat-number-public">{{ webinar_count }}</div>
                 <div class="stat-label-public">Webinars Hosted</div>
             </div>
             <div class="stat-item-public">
-                <div class="stat-number-public">300+</div>
+                <div class="stat-number-public">{{ job_count }}</div>
                 <div class="stat-label-public">Job Placements</div>
             </div>
         </div>
@@ -70,5 +70,7 @@
         </div>
     </div>
 </div>
+
+{% include 'flashcards_partial.html' %}
 
 {% endblock %}

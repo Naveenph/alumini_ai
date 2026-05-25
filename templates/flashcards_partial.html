@@ -1,0 +1,110 @@
+<!-- Dynamic & Innovative Flashcards Section -->
+{% if flashcards %}
+<div class="flashcard-showcase-container" style="margin-bottom: 3rem; padding: 2rem; border-radius: 24px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(219, 39, 119, 0.05) 100%); border: 1px solid rgba(255, 255, 255, 0.1); position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.02);">
+    
+    <!-- Innovative Background Ornaments -->
+    <div style="position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -50px; right: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(219, 39, 119, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+
+    <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 700; background: linear-gradient(to right, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; color: transparent; position: relative; z-index: 1;">College Highlights</h2>
+    
+    {% if flashcards|length == 1 %}
+    <!-- Innovative Single Image Display with Continuous Animation -->
+    <div class="single-flashcard-container" style="position: relative; max-width: 900px; height: 450px; margin: 0 auto; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3); z-index: 1;">
+        <img src="{{ url_for('static', filename='uploads/' + flashcards[0].image_filename) }}" alt="Highlight" style="width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.9); animation: slowZoom 15s infinite alternate ease-in-out;">
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 3rem 2rem 2rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; animation: slideUpFade 1s ease-out;">
+            <h3 style="font-size: 1.8rem; font-weight: bold; margin-bottom: 0.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Latest Spotlight</h3>
+            <p style="font-size: 1rem; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">A glimpse into our vibrant community.</p>
+        </div>
+    </div>
+    <style>
+        @keyframes slowZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+        @keyframes slideUpFade {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .single-flashcard-container {
+            animation: glowPulse 4s infinite alternate ease-in-out;
+        }
+        @keyframes glowPulse {
+            0% { box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3); }
+            100% { box-shadow: 0 15px 45px rgba(219, 39, 119, 0.5); }
+        }
+    </style>
+    {% else %}
+    <!-- Dynamic Slideshow Display -->
+    <div class="dynamic-flashcard-wrapper" style="position: relative; max-width: 900px; height: 450px; margin: 0 auto; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 1;">
+        {% for card in flashcards %}
+        <div class="dynamic-slide" style="position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease-in-out, transform 1s ease-in-out; transform: scale(1.05);">
+            <img src="{{ url_for('static', filename='uploads/' + card.image_filename) }}" alt="Flashcard" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9);">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 3rem 2rem 2rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white;">
+                <h3 style="font-size: 1.8rem; font-weight: bold; margin-bottom: 0.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Highlight {{ loop.index }}</h3>
+                <p style="font-size: 1rem; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Discover the amazing moments of our college.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Navigation dots for the slideshow -->
+    <div style="text-align: center; margin-top: 1.5rem; z-index: 1; position: relative;">
+        {% for card in flashcards %}
+        <span class="slide-dot" style="height: 12px; width: 12px; margin: 0 5px; background-color: rgba(124, 58, 237, 0.3); border-radius: 50%; display: inline-block; cursor: pointer; transition: background-color 0.3s ease, transform 0.3s ease;" onclick="currentSlide({{ loop.index0 }})"></span>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let slideIndex = 0;
+            const slides = document.getElementsByClassName("dynamic-slide");
+            const dots = document.getElementsByClassName("slide-dot");
+            let slideInterval;
+
+            function showSlides(n) {
+                if (!slides.length) return;
+                
+                for (let i = 0; i < slides.length; i++) {
+                    slides[i].style.opacity = "0";
+                    slides[i].style.transform = "scale(1.05)";
+                    slides[i].style.zIndex = "0";
+                    if(dots[i]) {
+                        dots[i].style.backgroundColor = "rgba(124, 58, 237, 0.3)";
+                        dots[i].style.transform = "scale(1)";
+                    }
+                }
+                
+                slideIndex = n !== undefined ? n : slideIndex;
+                if (slideIndex >= slides.length) { slideIndex = 0; }
+                if (slideIndex < 0) { slideIndex = slides.length - 1; }
+                
+                slides[slideIndex].style.opacity = "1";
+                slides[slideIndex].style.transform = "scale(1)";
+                slides[slideIndex].style.zIndex = "1";
+                if(dots[slideIndex]) {
+                    dots[slideIndex].style.backgroundColor = "var(--primary-color)";
+                    dots[slideIndex].style.transform = "scale(1.3)";
+                }
+            }
+
+            function nextSlide() {
+                slideIndex++;
+                showSlides();
+            }
+
+            // Start auto-play
+            showSlides();
+            slideInterval = setInterval(nextSlide, 4000);
+
+            // Make dots clickable
+            window.currentSlide = function(n) {
+                clearInterval(slideInterval);
+                showSlides(n);
+                slideInterval = setInterval(nextSlide, 4000);
+            };
+        });
+    </script>
+    {% endif %}
+</div>
+{% endif %}

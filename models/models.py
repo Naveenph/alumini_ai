@@ -11,6 +11,7 @@ class Admin(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     profile_pic = db.Column(db.String(255), default='default_admin.png')
+    email_verification_otp = db.Column(db.String(6), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships

@@ -3,9 +3,11 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from functools import wraps
 import uuid
 import random
-from models.base import db, mail
+from models.base import db, mail, oauth
 from flask_mail import Message
 from models.models import Admin, Alumni, Student, ActivityLog
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
 
 def send_verification_email(email, name, token, otp):
     try:
@@ -276,15 +278,14 @@ def register_student():
     flash("Registration successful! Please check your email for the verification code.", "info")
     return redirect(url_for('auth.verify_otp_view', email=email, role='student'))
 
-# Forgot Password (Mock verification & reset)
+# Forgot Password (Secure verification & reset)
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
-        new_password = request.form.get('password', '').strip()
         role = request.form.get('role', '')
 
-        if not email or not new_password or not role:
+        if not email or not role:
             flash("Please fill in all fields.", "danger")
             return render_template('forgot_password.html')
 
@@ -297,9 +298,21 @@ def forgot_password():
             user = Student.query.filter_by(email=email).first()
 
         if user:
-            user.set_password(new_password)
-            db.session.commit()
-            flash("Password updated successfully! You can now log in.", "success")
+            # Generate secure token
+            serializer = URLSafeTimedSerializer(current_app.secret_key)
+            token = serializer.dumps({'email': user.email, 'role': role}, salt='password-reset-salt')
+            
+            # Send Email
+            reset_link = url_for('auth.reset_password', token=token, _external=True)
+            try:
+                msg = Message('Password Reset Request', recipients=[user.email])
+                msg.body = f"Hello {user.name},\n\nTo reset your password, please click the link below:\n{reset_link}\n\nIf you did not request this, please ignore this email."
+                mail.send(msg)
+                flash("A password reset link has been sent to your email address.", "info")
+            except Exception as e:
+                print("Password reset email failed:", e)
+                flash("Failed to send email. Please check the server configuration.", "danger")
+                
             return redirect(url_for('auth.login_view'))
         else:
             flash("Email not found in our database.", "danger")
@@ -395,3 +408,168 @@ def logout():
     session.clear()
     flash("You have been logged out successfully.", "success")
     return redirect(url_for('home'))
+
+# Reset Password Route
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    serializer = URLSafeTimedSerializer(current_app.secret_key)
+    try:
+        data = serializer.loads(token, salt='password-reset-salt', max_age=3600) # 1 hour
+    except Exception:
+        flash("The password reset link is invalid or has expired.", "danger")
+        return redirect(url_for('auth.forgot_password'))
+        
+    if request.method == 'POST':
+        new_password = request.form.get('password', '').strip()
+        if not new_password:
+            flash("Password cannot be empty.", "danger")
+            return render_template('reset_password.html', token=token)
+            
+        role = data.get('role')
+        email = data.get('email')
+        
+        if role == 'admin':
+            user = Admin.query.filter_by(email=email).first()
+        elif role == 'alumni':
+            user = Alumni.query.filter_by(email=email).first()
+        elif role == 'student':
+            user = Student.query.filter_by(email=email).first()
+            
+        if user:
+            user.set_password(new_password)
+            db.session.commit()
+            flash("Your password has been updated! You can now log in.", "success")
+            return redirect(url_for('auth.login_view'))
+        else:
+            flash("User not found.", "danger")
+            return redirect(url_for('auth.login_view'))
+            
+    return render_template('reset_password.html', token=token)
+
+# OAuth Routes
+@auth_bp.route('/login/<provider>')
+def oauth_login(provider):
+    if provider not in ['google']:
+        flash("Invalid OAuth provider.", "danger")
+        return redirect(url_for('auth.login_view'))
+    client = oauth.create_client(provider)
+    redirect_uri = url_for('auth.oauth_authorize', provider=provider, _external=True)
+    return client.authorize_redirect(redirect_uri)
+
+@auth_bp.route('/authorize/<provider>')
+def oauth_authorize(provider):
+    client = oauth.create_client(provider)
+    try:
+        token = client.authorize_access_token()
+    except Exception as e:
+        flash("OAuth authorization failed.", "danger")
+        return redirect(url_for('auth.login_view'))
+        
+    if provider == 'google':
+        user_info = client.parse_id_token(token, nonce=session.get('nonce'))
+        if not user_info:
+            user_info = client.get('https://openidconnect.googleapis.com/v1/userinfo').json()
+        email = user_info.get('email')
+        name = user_info.get('name')
+        provider_id = user_info.get('sub')
+            
+    if not email:
+        flash("Could not retrieve email from OAuth provider.", "danger")
+        return redirect(url_for('auth.login_view'))
+        
+    # Check if user exists
+    user = None
+    role = None
+    
+    alumni = Alumni.query.filter_by(email=email).first()
+    student = Student.query.filter_by(email=email).first()
+    
+    if alumni:
+        user = alumni
+        role = 'alumni'
+    elif student:
+        user = student
+        role = 'student'
+        
+    if user:
+        if provider == 'google' and not user.google_id:
+            user.google_id = provider_id
+        user.is_email_verified = True # Implicit verification
+        db.session.commit()
+        
+        if not user.is_approved:
+            flash("Your registration is pending approval by the Admin.", "warning")
+            return redirect(url_for('auth.login_view'))
+            
+        session.clear()
+        session['user_id'] = user.id
+        session['role'] = role
+        session['name'] = user.name
+        session['profile_pic'] = user.profile_pic
+        flash(f"Welcome back, {user.name}!", "success")
+        return redirect(url_for(f'{role}.dashboard'))
+        
+    # New user OAuth setup
+    session['oauth_email'] = email
+    session['oauth_name'] = name
+    session['oauth_provider'] = provider
+    session['oauth_provider_id'] = provider_id
+    
+    return redirect(url_for('auth.oauth_setup'))
+
+@auth_bp.route('/oauth-setup', methods=['GET', 'POST'])
+def oauth_setup():
+    if 'oauth_email' not in session:
+        return redirect(url_for('auth.login_view'))
+        
+    if request.method == 'POST':
+        role = request.form.get('role')
+        graduation_year = request.form.get('graduation_year')
+        
+        if not role or not graduation_year:
+            flash("Please fill in all required fields.", "danger")
+            return redirect(url_for('auth.oauth_setup'))
+            
+        email = session['oauth_email']
+        name = session['oauth_name']
+        provider = session['oauth_provider']
+        provider_id = session['oauth_provider_id']
+        
+        if role == 'alumni':
+            new_user = Alumni(
+                name=name,
+                email=email,
+                graduation_year=int(graduation_year),
+                is_approved=False,
+                is_email_verified=True,
+                password_hash=None
+            )
+            if provider == 'google':
+                new_user.google_id = provider_id
+        elif role == 'student':
+            new_user = Student(
+                name=name,
+                email=email,
+                graduation_year=int(graduation_year),
+                is_approved=False,
+                is_email_verified=True,
+                password_hash=None
+            )
+            if provider == 'google':
+                new_user.google_id = provider_id
+        else:
+            flash("Invalid role selected.", "danger")
+            return redirect(url_for('auth.oauth_setup'))
+            
+        db.session.add(new_user)
+        db.session.commit()
+        
+        session.pop('oauth_email', None)
+        session.pop('oauth_name', None)
+        session.pop('oauth_provider', None)
+        session.pop('oauth_provider_id', None)
+        
+        flash("Registration successful! Your account is pending admin approval.", "info")
+        return redirect(url_for('auth.login_view'))
+        
+    return render_template('oauth_setup.html', email=session.get('oauth_email'), name=session.get('oauth_name'))

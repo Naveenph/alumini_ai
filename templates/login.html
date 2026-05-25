@@ -68,6 +68,16 @@
             </button>
         </form>
 
+        <!-- OAuth Login Section (Hidden for Admin) -->
+        <div id="oauth-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <p style="text-align: center; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Or continue with</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="{{ url_for('auth.oauth_login', provider='google') }}" class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255, 255, 255, 0.05); color: white;">
+                    <i class="fab fa-google"></i> Google
+                </a>
+            </div>
+        </div>
+
         <!-- Helper Actions -->
         <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.8rem;">
             <a href="{{ url_for('auth.forgot_password') }}" class="accent-text" style="font-weight: 500;"><i class="fas fa-key"></i> Forgot Password?</a>
@@ -87,6 +97,12 @@
         // Add active class to clicked tab and form
         document.getElementById(`tab-${role}`).classList.add("active");
         document.getElementById(`form-${role}`).classList.add("active");
+        
+        // Hide OAuth for admin
+        const oauthSection = document.getElementById('oauth-section');
+        if (oauthSection) {
+            oauthSection.style.display = (role === 'admin') ? 'none' : 'block';
+        }
     }
 
     // Auto-focus active tab based on query parameters if any (e.g. ?role=alumni)

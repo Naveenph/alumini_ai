@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Complete Registration - Alumni Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10">
+    <div class="bg-gray-800 rounded-lg shadow-xl p-8 border border-gray-700">
+        <h2 class="text-3xl font-bold text-center text-white mb-2">Complete Profile</h2>
+        <p class="text-center text-gray-400 mb-6">Welcome, {{ name }}! Please select your role to finish setting up your account.</p>
+        
+        <form method="POST" action="{{ url_for('auth.oauth_setup') }}" class="space-y-6">
+            <div>
+                <label class="block text-gray-300 mb-2">I am a...</label>
+                <select name="role" required class="w-full bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="student">Student</option>
+                    <option value="alumni">Alumni</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-gray-300 mb-2">Graduation Year</label>
+                <input type="number" name="graduation_year" placeholder="e.g. 2024" required 
+                       class="w-full bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            </div>
+            
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                Complete Registration
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

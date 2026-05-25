@@ -138,6 +138,16 @@
             </button>
         </form>
 
+        <!-- OAuth Signup Section (Hidden for Admin) -->
+        <div id="oauth-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <p style="text-align: center; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Or sign up with</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="{{ url_for('auth.oauth_login', provider='google') }}" class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255, 255, 255, 0.05); color: white;">
+                    <i class="fab fa-google"></i> Google
+                </a>
+            </div>
+        </div>
+
         <!-- Helper Actions -->
         <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
             <p>Already registered? <a href="{{ url_for('auth.login_view') }}" class="accent-text" style="font-weight: 700; color: var(--accent-color);">Log In Here</a></p>
@@ -154,6 +164,11 @@
 
         document.getElementById(`tab-${role}`).classList.add("active");
         document.getElementById(`form-${role}`).classList.add("active");
+        
+        const oauthSection = document.getElementById('oauth-section');
+        if (oauthSection) {
+            oauthSection.style.display = (role === 'admin') ? 'none' : 'block';
+        }
     }
 
     const urlParams = new URLSearchParams(window.location.search);

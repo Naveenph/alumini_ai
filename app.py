@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from dotenv import load_dotenv
-from models.base import db, mail
+from models.base import db, mail, oauth
 from models.models import Admin, Alumni, Student, ActivityLog
 from database.connection import get_database_uri
 
@@ -32,6 +32,15 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 # Initialize Mail
 mail.init_app(app)
 
+# Initialize OAuth
+oauth.init_app(app)
+oauth.register(
+    name='google',
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'}
+)
 # Register Blueprints
 from routes.auth import auth_bp
 from routes.admin import admin_bp

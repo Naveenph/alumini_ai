@@ -69,10 +69,10 @@
         </form>
 
         <!-- OAuth Login Section (Hidden for Admin) -->
-        <div id="oauth-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <div id="oauth-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
             <p style="text-align: center; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Or continue with</p>
             <div style="display: flex; gap: 1rem; justify-content: center;">
-                <a href="{{ url_for('auth.oauth_login', provider='google') }}" class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255, 255, 255, 0.05); color: white;">
+                <a href="{{ url_for('auth.oauth_login', provider='google') }}" class="btn btn-secondary" style="flex: 1; justify-content: center;">
                     <i class="fab fa-google"></i> Google
                 </a>
             </div>
